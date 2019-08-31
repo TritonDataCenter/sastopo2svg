@@ -6,6 +6,9 @@
 // Copyright 2019 Joyent, Inc.
 //
 //
+extern crate log;
+extern crate env_logger;
+
 extern crate getopts;
 use getopts::Options;
 
@@ -20,6 +23,8 @@ fn usage(progname: &str, opts: &Options) {
 }
 
 fn main() {
+    env_logger::init();
+
     let args: Vec<String> = env::args().collect();
     let progname = args[0].clone();
 

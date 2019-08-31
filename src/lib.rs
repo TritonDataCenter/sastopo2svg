@@ -5,6 +5,11 @@
 //
 // Copyright 2019 Joyent, Inc.
 //
+extern crate log;
+extern crate env_logger;
+
+use log::debug;
+
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_xml_rs;
@@ -16,8 +21,6 @@ use topo_digraph_xml::{
     PG_NAME,
     PG_VALS
 };
-
-//extern crate nvpair;
 
 extern crate svg;
 use svg::Document;
@@ -246,7 +249,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     // elements.
     //
     for fmri in &digraph.initiators {
-        println!("initiator: {}", fmri);
+        debug!("initiator: {}", fmri);
         let vtx = match digraph.vertices.get(&fmri.to_string()) {
             Some(entry) => {
                 entry.clone()
@@ -269,13 +272,13 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             }
             None => { 0 }
         };
-        println!("depth: {} has height {}", i, height);
+        debug!("depth: {} has height {}", i, height);
         if height > max_height {
             max_height = height;
         }
     }
-    println!("max_depth: {}", max_depth);
-    println!("max_height: {}", max_height);
+    debug!("max_depth: {}", max_depth);
+    debug!("max_height: {}", max_height);
 
     let on_click = Script::new(ONCLICK)
         .set("type", "application/ecmascript");
@@ -319,7 +322,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             };
             let y = ((height - 1) * 100 * y_factor) + y_margin;
 
-            println!("VERTEX: fmri: {}, depth: {}, height: {}, x: {}, y: {}", vtx_fmri,
+            debug!("VERTEX: fmri: {}, depth: {}, height: {}, x: {}, y: {}", vtx_fmri,
                 depth, height, x, y);
             let rect = Rectangle::new()
                 .set("x", x)
@@ -365,14 +368,14 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     //
     for depth in 1..=max_depth {
         let vertices = column_hash.get(&depth).unwrap();
-        for index in 0..vertices.len() {
-            let vtx_fmri: String = vertices[index].to_string();
+        for v in vertices {
+	    let vtx_fmri: String = v.to_string();
             let vtx = digraph.vertices.get(&vtx_fmri).unwrap();
 
             if vtx.outgoing_edges.is_none() {
-                println!("no edges: {}", vtx_fmri);
-                break;
+                continue;
             }
+
             let start_x1 = vtx.geometry.x + vtx_width;
             let start_y1: u32 = vtx.geometry.y + (vtx_height / 2);
             let start_x2 = start_x1 + 50;
@@ -386,10 +389,8 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
                 .set("stroke-width", "2");
 
             document = document.add(line);
-            println!("\nEDGE: from: {}", vtx_fmri);
-            
+
             for edge_fmri in vtx.outgoing_edges.as_ref().unwrap() {
-                println!("        to: {}", edge_fmri);
                 let edge_vtx = digraph.vertices.get(edge_fmri).unwrap();
                 let mid_x1 = start_x2;
                 let mid_y1 = start_y2;
@@ -442,13 +443,14 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
 
     //
     // Iterate through the TopoDigraphXML and recreate the SAS topology in the
-    // form for a SasDigraph structure.
+    // form of a SasDigraph structure.
     //
     for vtxxml in sasxml.vertices.vertex {
 
-        let instance = u64::from_str_radix(&vtxxml.instance, 16)?;
+	// Convert hex string to a u64, skipping the leading '0x'
+        let instance = u64::from_str_radix(&vtxxml.instance[2..], 16)?;
 
-        let mut vtx = match vtxxml.outgoing_edges {
+        let vtx = match vtxxml.outgoing_edges {
             Some(outgoing_edges) => {
                 let mut edges = Vec::new();
                 for edgexml in outgoing_edges.edges {
@@ -463,10 +465,14 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
             }
         };
 
+        //
+        // The XML contains a set of nested NvpairXML structures representing
+        // the node property groups and their contains properties.
+        //
         for pgnvl in vtxxml.propgroups {
             let pgarr = pgnvl.nvlist_elements.unwrap();
-            //for pg in pgarr {
-            //}
+            for pg in pgarr {
+            }
         }
 
         if vtx.name == INITIATOR {
