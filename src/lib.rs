@@ -76,10 +76,6 @@ function showInfo(evt) {
     var rect = evt.target.parentElement.getElementsByTagName("rect");
     rect[0].setAttribute("fill", "cyan");
 
-    var group = evt.target.parentElement;
-    var name = group.getAttribute("name");
-    var fmri = group.getAttribute("fmri");
-
     //
     // Clear the info panel by iterating through the child <text? elements of
     // the info panel and removing the ones that have an a special attribute
@@ -98,99 +94,32 @@ function showInfo(evt) {
     // Finally, create new <text> elements for the properties of the vertex
     // that was clicked on.
     //
-    var prop_y = 50;
-    var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    prop_element.setAttribute("x", 15);
-    prop_element.setAttribute("y", 50);
-    prop_element.style.fontFamily = "Courier New, Courier, monospace";
-    prop_element.setAttribute("id", "nodeproperty");
-    prop_element.innerHTML = "FMRI: " + fmri;
-    infobox.appendChild(prop_element);
-
-    var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    prop_element.setAttribute("x", 15);
-    prop_element.setAttribute("y", 70);
-    prop_element.style.fontFamily = "Courier New, Courier, monospace";
-    prop_element.setAttribute("id", "nodeproperty");
-    prop_element.innerHTML = "Node Type: " + name;
-    infobox.appendChild(prop_element);
+    var prop_x = 15;
+    var prop_y = 60;
+    var group = evt.target.parentElement;
+    var props;
+    var name = group.getAttribute("name");
 
     if (name === "initiator") {
-        manuf = group.getAttribute("manufacturer");
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 90);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "Manufacturer: " + manuf;
-        infobox.appendChild(prop_element);
-
-        model = group.getAttribute("model");
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 110);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "Model: " + model;
-        infobox.appendChild(prop_element);
-
-        serial = group.getAttribute("serial");
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 130);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "Serial Number: " + serial;
-        infobox.appendChild(prop_element);
-
+        props = ["fmri", "name", "manufacturer", "model", "serial"]; 
     } else if (name === "port") {
-        loc_sas_addr = group.getAttribute("local-sas-address");
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 90);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "Local SAS Address: " + loc_sas_addr;
-        infobox.appendChild(prop_element);
-
-        att_sas_addr = group.getAttribute("attached-sas-address");
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 110);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "Attached SAS Address: " + att_sas_addr;
-        infobox.appendChild(prop_element);
-
+        props = ["fmri", "name", "local-sas-address", "attached-sas-address"];
     } else if (name === "expander") {
-        devfs_name = group.getAttribute("devfs-name");
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 90);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "SMP Device name: " + devfs_name;
-        infobox.appendChild(prop_element);
-
+        props = ["fmri", "name", "devfs-name"];
     } else if (name === "target") {
-        manuf = group.getAttribute("manufacturer");
+        props = ["fmri", "name", "manufacturer", "model"];
+    }
+
+    for (const prop of props) {
+        var value = group.getAttribute(prop)
         var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 90);
+        prop_element.setAttribute("x", prop_x);
+        prop_element.setAttribute("y", prop_y);
         prop_element.style.fontFamily = "Courier New, Courier, monospace";
         prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "Manufacturer: " + manuf;
+        prop_element.innerHTML = prop + ": " + value;
         infobox.appendChild(prop_element);
-
-        model = group.getAttribute("model");
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", 15);
-        prop_element.setAttribute("y", 110);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = "Model: " + model;
-        infobox.appendChild(prop_element);
-
+        prop_y = prop_y + 20;
     }
 }
 ]]>
@@ -358,10 +287,11 @@ fn build_info_panel() -> Result<Group, Box<dyn Error>> {
         .set("stroke-width", 3)
         .set("name", "infobox");
 
-    let txt = svg::node::Text::new("Node Properties:");
+    let txt = svg::node::Text::new("Node Properties");
     let info_label = Text::new()
         .set("x", info_x + 5)
         .set("y", info_y + 20)
+        .set("font-size", "x-large")
         .set("font-family", "Courier New, Courier, monospace")
         .add(txt);
 
