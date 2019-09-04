@@ -18,7 +18,7 @@ use std::process;
 extern crate sastopo_xml2svg;
 
 fn usage(progname: &str, opts: &Options) {
-    let msg = format!("USAGE: {} -x XML", progname);
+    let msg = format!("USAGE: {} -x XML -o SVG", progname);
     print!("{}", opts.usage(&msg));
 }
 

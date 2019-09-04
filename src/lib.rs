@@ -19,7 +19,9 @@ use topo_digraph_xml::{
     NvlistXmlArrayElement,
     TopoDigraphXML,
     PG_NAME,
-    PG_VALS
+    PG_VALS,
+    PROP_NAME,
+    PROP_VALUE,
 };
 
 extern crate svg;
@@ -47,28 +49,149 @@ pub const EXPANDER: &'static str = "expander";
 pub const TARGET: &'static str = "target";
 
 const ONCLICK: &'static str = r#"<![CDATA[
+//
+// When a graph vertex is clicked in the SVG, highlight the clicked vertex and
+// and populate the info panel on the left side with the properties of that
+// vertex.
+//
 function showInfo(evt) {
+    var infobox;
+
+    //
+    // Iterate through the DOM <rect> elements, which represent the graph
+    // vertices and set the fill color to none.  While we're iterating,
+    // cache a reference to the group element for the info panel, which
+    // we'll need later.
+    //
+    var allrects = document.getElementsByTagName("rect");
+    for (var i = 0; i < allrects.length; i++) {
+        allrects[i].setAttribute("fill", "none");
+        var name = allrects[i].getAttribute("name");
+        if (name === "infobox") {
+            infobox = allrects[i].parentElement;
+        }
+    }
+
+    // Highlight the vertex that was clicked by setting the fill color
+    var rect = evt.target.parentElement.getElementsByTagName("rect");
+    rect[0].setAttribute("fill", "cyan");
+
     var group = evt.target.parentElement;
+    var name = group.getAttribute("name");
     var fmri = group.getAttribute("fmri");
-    console.log('fmri is %s', fmri);
-}
-]]>
-"#;
 
-const ONMOUSEOVER: &'static str = r#"<![CDATA[
-function highlightVertex(evt) {
-    var rect = evt.target;
-    rect.setAttribute("fill", "cyan");
-    console.log('hello there');
-}
-]]>
-"#;
+    //
+    // Clear the info panel by iterating through the child <text? elements of
+    // the info panel and removing the ones that have an a special attribute
+    // that indicates there are a vertex property.
+    //
+    var texts = infobox.getElementsByTagName("text");
+    var textarr = Array.from(texts);
+    for (var i = 0; i < textarr.length; i++) {
+        var id = textarr[i].getAttribute("id");
+        if (id === "nodeproperty") {
+            infobox.removeChild(textarr[i]);
+        }
+    }
 
-const ONMOUSEOUT: &'static str = r#"<![CDATA[
-function unHighlightVertex(evt) {
-    var rect = evt.target;
-    rect.setAttribute("fill", "none");
-    console.log('goodbye');
+    //
+    // Finally, create new <text> elements for the properties of the vertex
+    // that was clicked on.
+    //
+    var prop_y = 50;
+    var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    prop_element.setAttribute("x", 15);
+    prop_element.setAttribute("y", 50);
+    prop_element.style.fontFamily = "Courier New, Courier, monospace";
+    prop_element.setAttribute("id", "nodeproperty");
+    prop_element.innerHTML = "FMRI: " + fmri;
+    infobox.appendChild(prop_element);
+
+    var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    prop_element.setAttribute("x", 15);
+    prop_element.setAttribute("y", 70);
+    prop_element.style.fontFamily = "Courier New, Courier, monospace";
+    prop_element.setAttribute("id", "nodeproperty");
+    prop_element.innerHTML = "Node Type: " + name;
+    infobox.appendChild(prop_element);
+
+    if (name === "initiator") {
+        manuf = group.getAttribute("manufacturer");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 90);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "Manufacturer: " + manuf;
+        infobox.appendChild(prop_element);
+
+        model = group.getAttribute("model");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 110);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "Model: " + model;
+        infobox.appendChild(prop_element);
+
+        serial = group.getAttribute("serial");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 130);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "Serial Number: " + serial;
+        infobox.appendChild(prop_element);
+
+    } else if (name === "port") {
+        loc_sas_addr = group.getAttribute("local-sas-address");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 90);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "Local SAS Address: " + loc_sas_addr;
+        infobox.appendChild(prop_element);
+
+        att_sas_addr = group.getAttribute("attached-sas-address");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 110);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "Attached SAS Address: " + att_sas_addr;
+        infobox.appendChild(prop_element);
+
+    } else if (name === "expander") {
+        devfs_name = group.getAttribute("devfs-name");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 90);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "SMP Device name: " + devfs_name;
+        infobox.appendChild(prop_element);
+
+    } else if (name === "target") {
+        manuf = group.getAttribute("manufacturer");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 90);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "Manufacturer: " + manuf;
+        infobox.appendChild(prop_element);
+
+        model = group.getAttribute("model");
+        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        prop_element.setAttribute("x", 15);
+        prop_element.setAttribute("y", 110);
+        prop_element.style.fontFamily = "Courier New, Courier, monospace";
+        prop_element.setAttribute("id", "nodeproperty");
+        prop_element.innerHTML = "Model: " + model;
+        infobox.appendChild(prop_element);
+
+    }
 }
 ]]>
 "#;
@@ -168,6 +291,30 @@ impl Config {
     }
 }
 
+//
+// Parse an NvlistXmlArrayElement representing a topo property, extract the
+// prop name and value (as a string) and return a SasDigraphProperty.
+//
+fn parse_prop(nvl: &NvlistXmlArrayElement) -> Result<SasDigraphProperty, Box<dyn Error>> {
+    let mut propname: Option<String> = None;
+    let mut propval: Option<String> = None;
+
+    for nvpair in &nvl.nvpairs {
+
+        match nvpair.name.as_ref().unwrap().as_ref() {
+            PROP_NAME => { propname = Some(nvpair.value.as_ref().unwrap().clone()); }
+            PROP_VALUE => { propval = Some(nvpair.value.as_ref().unwrap().clone()); }
+            _ => {}
+        }
+    }
+
+    if propname.is_none() || propval.is_none() {
+        Err(Box::new(SimpleError(format!("malformed property value nvlist: {:?}", nvl))))
+    } else {
+        Ok(SasDigraphProperty::new(propname.unwrap(), propval.unwrap()))
+    }
+}
+
 fn visit_vertex(vertices: &HashMap<String, SasDigraphVertex>, 
     vtx: &SasDigraphVertex, column_hash: &mut HashMap<u32, Vec<String>>,
     depth: &u32) -> Result<u32, Box<dyn Error>> {
@@ -204,16 +351,18 @@ fn build_info_panel() -> Result<Group, Box<dyn Error>> {
     let info_rect = Rectangle::new()
         .set("x", info_x)
         .set("y", info_y)
-        .set("width", 500)
+        .set("width", 700)
         .set("height", 1000)
         .set("fill", "none")
         .set("stroke", "black")
-        .set("stroke-width", 3);
+        .set("stroke-width", 3)
+        .set("name", "infobox");
 
     let txt = svg::node::Text::new("Node Properties:");
     let info_label = Text::new()
         .set("x", info_x + 5)
         .set("y", info_y + 20)
+        .set("font-family", "Courier New, Courier, monospace")
         .add(txt);
 
     let info_group = Group::new()
@@ -283,20 +432,12 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let on_click = Script::new(ONCLICK)
         .set("type", "application/ecmascript");
 
-    let on_mouseover = Script::new(ONMOUSEOVER)
-        .set("type", "application/ecmascript");
-
-    let on_mouseout = Script::new(ONMOUSEOUT)
-        .set("type", "application/ecmascript");
-
     let info_group = build_info_panel()?;
 
     let mut document = Document::new()
         .set("overflow", "scroll")
         .set("viewbox", (0, 0, (100 * max_depth), (250 * max_height)))
         .add(on_click)
-        .add(on_mouseover)
-        .add(on_mouseout)
         .add(info_group);
 
     let vtx_width = 180;
@@ -312,7 +453,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             let vtx_fmri: String = vertices[index].to_string();
             let vtx = digraph.vertices.get_mut(&vtx_fmri).unwrap();
             
-            let x_margin = 600;
+            let x_margin = 750;
             let y_margin = 10;
             let x = ((depth - 1) * 250) + x_margin;
             
@@ -331,9 +472,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
                 .set("height", vtx_height)
                 .set("fill", "none")
                 .set("stroke", "black")
-                .set("stroke-width", 3)
-                .set("onmouseover", "highlightVertex(evt)")
-                .set("onmouseout", "unHighlightVertex(evt)");
+                .set("stroke-width", 3);
 
             vtx.geometry.x = x;
             vtx.geometry.y = y.try_into().unwrap();
@@ -344,21 +483,28 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             let name_label = Text::new()
                 .set("x", x + 10)
                 .set("y", y + 20)
+                .set("font-family", "Courier New, Courier, monospace")
                 .add(txt);
 
             let txt = svg::node::Text::new(format!("{:x}", vtx.instance));
             let inst_label = Text::new()
                 .set("x", x + 10)
                 .set("y", y + 50)
+                .set("font-family", "Courier New, Courier, monospace")
                 .add(txt);
 
-            let vtx_group = Group::new()
+            let mut vtx_group = Group::new()
                 .set("onclick", "showInfo(evt)")
+                .set("name", vtx.name.clone())
                 .set("fmri", vtx_fmri)
                 .add(rect)
                 .add(name_label)
                 .add(inst_label);
             
+            for prop in &vtx.properties {
+                vtx_group = vtx_group.set(prop.name.clone(), prop.value.clone());
+            }
+
             document = document.add(vtx_group);
         }
     }
@@ -447,10 +593,10 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     //
     for vtxxml in sasxml.vertices.vertex {
 
-	// Convert hex string to a u64, skipping the leading '0x'
+	    // Convert hex string to a u64, skipping the leading '0x'
         let instance = u64::from_str_radix(&vtxxml.instance[2..], 16)?;
 
-        let vtx = match vtxxml.outgoing_edges {
+        let mut vtx = match vtxxml.outgoing_edges {
             Some(outgoing_edges) => {
                 let mut edges = Vec::new();
                 for edgexml in outgoing_edges.edges {
@@ -467,11 +613,58 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
 
         //
         // The XML contains a set of nested NvpairXML structures representing
-        // the node property groups and their contains properties.
+        // the node property groups and their contains properties.  We descend
+        // through these to build an array of SasDigraphProperty structs which
+        // will contains a subset of properties that we want to display when
+        // the vertex is clicked on.
         //
         for pgnvl in vtxxml.propgroups {
             let pgarr = pgnvl.nvlist_elements.unwrap();
             for pg in pgarr {
+                let mut owned1;
+                let mut owned2;
+
+                let mut props : Option<&Vec<NvlistXmlArrayElement>> = None;
+                let mut pgname : &str = "";
+                for pgnvp in pg.nvpairs {
+                    match pgnvp.name.unwrap().as_ref() {
+                        PG_NAME => {
+                            owned1 = pgnvp.value.unwrap();
+                            pgname = owned1.as_ref();
+                        }
+                        PG_VALS => {
+                            owned2 = pgnvp.nvlist_elements.unwrap();
+                            props = Some(owned2.as_ref());
+                        }
+                        _ => {
+                            return Err(Box::new(
+                                SimpleError("Unexpected nvpair name".to_string())))
+                            }
+                    }
+                }
+
+                // Sanity check against malformed XML
+                if pgname == "" {
+                    return Err(Box::new(SimpleError(
+                        format!("malformed propgroup, {} not set", PG_NAME))));
+                } else if props.is_none() {
+                    return Err(Box::new(SimpleError(
+                        format!("malformed propgroup, {} not set", PG_VALS))));
+                }
+
+                //
+                // The only things in the protocol property group is an nvlist
+                // representation of the FMRI, which we don't need as we
+                // already have the FMRI as a string in a separate field.
+                //
+                if pgname == "protocol" {
+                    continue;
+                }
+
+                for propnvl in props.unwrap() {
+                    let prop = parse_prop(&propnvl)?;
+                    vtx.properties.push(prop);
+                }
             }
         }
 
