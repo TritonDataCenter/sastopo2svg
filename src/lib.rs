@@ -34,11 +34,13 @@ use svg::node::element::{
     Text
 };
 
+use std::cmp;
 use std::collections::HashMap;
 use std::convert::TryInto;
 use std::error::Error;
 use std::fmt;
 use std::fs;
+use std::io::Write;
 
 //
 // Constants for topo node names in SAS scheme topology
@@ -210,13 +212,13 @@ impl SasDigraph {
 
 #[derive(Debug)]
 pub struct Config {
-    pub svg_path: String,
+    pub html_path: String,
     pub xml_path: String,
 }
 
 impl Config {
-    pub fn new(svg_path: String, xml_path: String) -> Config {
-        Config { svg_path, xml_path }
+    pub fn new(html_path: String, xml_path: String) -> Config {
+        Config { html_path, xml_path }
     }
 }
 
@@ -501,7 +503,25 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
         }
     }
 
-    svg::save(&config.svg_path, &document)?;
+    let mut svg_path = config.html_path.clone();
+    svg_path.push_str(".svg");
+    svg::save(&svg_path, &document)?;
+
+    //
+    // The SVG can be quite large depending on the size of the SAS fabric.
+    // So to allow it to be more easily viewable in a browser, we embed the
+    // SVG in a scrollable HTML iframe.
+    //
+    let svg_width = cmp::max(1800, max_depth * 375);
+    let svg_height = cmp::max(1100, max_height * 100);
+
+    let mut htmlfile = fs::File::create(&config.html_path)?;
+    htmlfile.write_fmt(format_args!("<html><title>SAS Topology: {}</title><body>\n",
+       &config.html_path))?;
+    htmlfile.write_fmt(format_args!(
+        "<iframe src=\"{}\" width={} height={} scrollable=\"yes\" frameborder=\"no\" />",
+        svg_path, svg_width, svg_height))?;
+    htmlfile.write_fmt(format_args!("</body></html>\n"))?;
 
     Ok(())
 }
@@ -563,8 +583,10 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
                             pgname = owned1.as_ref();
                         }
                         PG_VALS => {
-                            owned2 = pgnvp.nvlist_elements.unwrap();
-                            props = Some(owned2.as_ref());
+                            if pgnvp.nvlist_elements.is_some() {
+                                owned2 = pgnvp.nvlist_elements.unwrap();
+                                props = Some(owned2.as_ref());
+                            }
                         }
                         _ => {
                             return Err(Box::new(
@@ -578,8 +600,9 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
                     return Err(Box::new(SimpleError(
                         format!("malformed propgroup, {} not set", PG_NAME))));
                 } else if props.is_none() {
-                    return Err(Box::new(SimpleError(
-                        format!("malformed propgroup, {} not set", PG_VALS))));
+                    /*return Err(Box::new(SimpleError(
+                        format!("malformed propgroup, {} not set", PG_VALS))));*/
+                    continue;
                 }
 
                 //

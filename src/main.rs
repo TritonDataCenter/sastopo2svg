@@ -18,7 +18,7 @@ use std::process;
 extern crate sastopo_xml2svg;
 
 fn usage(progname: &str, opts: &Options) {
-    let msg = format!("USAGE: {} -x XML -o SVG", progname);
+    let msg = format!("USAGE: {} -x XML -o HTML", progname);
     print!("{}", opts.usage(&msg));
 }
 
@@ -30,7 +30,7 @@ fn main() {
 
     let mut opts = Options::new();
     opts.optflag("h", "help", "print this usage message");
-    opts.optopt("o", "SVG", "pathname of SVG file to create", "SVG");
+    opts.optopt("o", "HTML", "pathname of HTML file to create", "SVG");
     opts.optopt("x", "XML", "Output of sastopo -x", "XML");
 
     let matches = match opts.parse(&args[1..]) {
@@ -43,7 +43,7 @@ fn main() {
         process::exit(2);
     }
 
-    let svg_path = match matches.opt_str("o") {
+    let html_path = match matches.opt_str("o") {
         Some(path) => path,
         None => {
             eprintln!("-o argument is required");
@@ -61,7 +61,7 @@ fn main() {
         }
     };
 
-    let config = sastopo_xml2svg::Config::new(svg_path, xml_path);
+    let config = sastopo_xml2svg::Config::new(html_path, xml_path);
 
     match sastopo_xml2svg::run(&config) {
         Ok(_r) => {
