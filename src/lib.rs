@@ -45,12 +45,12 @@ use std::io::Write;
 //
 // Constants for topo node names in SAS scheme topology
 //
-pub const INITIATOR: &'static str = "initiator";
-pub const PORT: &'static str = "port";
-pub const EXPANDER: &'static str = "expander";
-pub const TARGET: &'static str = "target";
+pub const INITIATOR: &str = "initiator";
+pub const PORT: &str = "port";
+pub const EXPANDER: &str = "expander";
+pub const TARGET: &str = "target";
 
-const ONCLICK: &'static str = r#"<![CDATA[
+const ONCLICK: &str = r#"<![CDATA[
 //
 // When a graph vertex is clicked in the SVG, highlight the clicked vertex and
 // and populate the info panel on the left side with the properties of that
@@ -97,7 +97,7 @@ function showInfo(evt) {
     // that was clicked on.
     //
     var prop_x = 15;
-    var prop_y = 60;
+    var prop_y = 150;
     var group = evt.target.parentElement;
     var props;
     var name = group.getAttribute("name");
@@ -192,6 +192,12 @@ impl SasDigraphVertex {
 
 #[derive(Debug)]
 struct SasDigraph {
+    // machine nodename
+    nodename: String,
+    // OS version
+    os_version: String,
+    // time of snapshot in ISO-8601 format
+    timestamp: String,
     // hashmap of vertices, hashed by FMRI
     vertices: HashMap<String, SasDigraphVertex>,
     // array of initiator FMRIs
@@ -199,11 +205,14 @@ struct SasDigraph {
 }
 
 impl SasDigraph {
-    fn new() -> SasDigraph {
+    fn new(nodename: String, os_version: String, timestamp: String) -> SasDigraph {
         let vertices = HashMap::new();
         let initiators = Vec::new();
 
         SasDigraph {
+            nodename,
+            os_version,
+            timestamp,
             vertices,
             initiators,
         }
@@ -248,7 +257,7 @@ fn parse_prop(nvl: &NvlistXmlArrayElement) -> Result<SasDigraphProperty, Box<dyn
 
 fn visit_vertex(vertices: &HashMap<String, SasDigraphVertex>, 
     vtx: &SasDigraphVertex, column_hash: &mut HashMap<u32, Vec<String>>,
-    depth: &u32) -> Result<u32, Box<dyn Error>> {
+    depth: u32) -> Result<u32, Box<dyn Error>> {
     
     let mut max_depth = depth + 1;
 
@@ -266,7 +275,7 @@ fn visit_vertex(vertices: &HashMap<String, SasDigraphVertex>,
                     return Err(Box::new(SimpleError("failed to lookup vertex".to_string())));
                 }
             };
-            let rc = visit_vertex(vertices, next_vtx, column_hash, &(depth + 1))?;
+            let rc = visit_vertex(vertices, next_vtx, column_hash, depth + 1)?;
             if rc > max_depth {
                 max_depth = rc;
             }
@@ -275,7 +284,7 @@ fn visit_vertex(vertices: &HashMap<String, SasDigraphVertex>,
     Ok(max_depth)
 }
 
-fn build_info_panel() -> Result<Group, Box<dyn Error>> {
+fn build_info_panel(digraph: &SasDigraph) -> Result<Group, Box<dyn Error>> {
 
     let info_x = 10;
     let info_y = 10;
@@ -289,17 +298,50 @@ fn build_info_panel() -> Result<Group, Box<dyn Error>> {
         .set("stroke-width", 3)
         .set("name", "infobox");
 
-    let txt = svg::node::Text::new("Node Properties");
-    let info_label = Text::new()
+    let txt = svg::node::Text::new("Host Information");
+    let heading1 = Text::new()
         .set("x", info_x + 5)
         .set("y", info_y + 20)
         .set("font-size", "x-large")
         .set("font-family", "Courier New, Courier, monospace")
         .add(txt);
 
+    let txt = svg::node::Text::new(format!("Nodename: {}", &digraph.nodename));
+    let nodename = Text::new()
+        .set("x", info_x + 5)
+        .set("y", info_y + 40)
+        .set("font-family", "Courier New, Courier, monospace")
+        .add(txt);
+
+    let txt = svg::node::Text::new(format!("OS Version: {}", &digraph.os_version));
+    let os_version = Text::new()
+        .set("x", info_x + 5)
+        .set("y", info_y + 60)
+        .set("font-family", "Courier New, Courier, monospace")
+        .add(txt);
+
+    let txt = svg::node::Text::new(format!("Snapshot Time: {}", &digraph.timestamp));
+    let timestamp = Text::new()
+        .set("x", info_x + 5)
+        .set("y", info_y + 80)
+        .set("font-family", "Courier New, Courier, monospace")
+        .add(txt);
+
+    let txt = svg::node::Text::new("Node Properties");
+    let heading2 = Text::new()
+        .set("x", info_x + 5)
+        .set("y", info_y + 120)
+        .set("font-size", "x-large")
+        .set("font-family", "Courier New, Courier, monospace")
+        .add(txt);
+
     let info_group = Group::new()
         .add(info_rect)
-        .add(info_label);
+        .add(heading1)
+        .add(nodename)
+        .add(os_version)
+        .add(timestamp)
+        .add(heading2);
 
     Ok(info_group)
 }
@@ -340,13 +382,13 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             }
         };
     
-        let rc = visit_vertex(&digraph.vertices, vtx, &mut column_hash, &depth)?;
+        let rc = visit_vertex(&digraph.vertices, vtx, &mut column_hash, depth)?;
         if rc > max_depth {
             max_depth = rc;
         }
     }
 
-    for i in 1..(max_depth + 1) {
+    for i in 1..=max_depth {
         let height = match column_hash.get(&i) {
             Some(entry) => {
                 entry.len()
@@ -364,7 +406,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let on_click = Script::new(ONCLICK)
         .set("type", "application/ecmascript");
 
-    let info_group = build_info_panel()?;
+    let info_group = build_info_panel(&digraph)?;
 
     let mut document = Document::new()
         .set("overflow", "scroll")
@@ -411,7 +453,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             vtx.geometry.width = vtx_width;
             vtx.geometry.height = vtx_height;
 
-            let txt = svg::node::Text::new(format!("{}", vtx.name));
+            let txt = svg::node::Text::new(vtx.name.to_string());
             let name_label = Text::new()
                 .set("x", x + 10)
                 .set("y", y + 20)
@@ -516,8 +558,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let svg_height = cmp::max(1100, max_height * 100);
 
     let mut htmlfile = fs::File::create(&config.html_path)?;
-    htmlfile.write_fmt(format_args!("<html><title>SAS Topology: {}</title><body>\n",
-       &config.html_path))?;
+    htmlfile.write_fmt(format_args!("<html><title>SAS Topology</title><body>\n"))?;
     htmlfile.write_fmt(format_args!(
         "<iframe src=\"{}\" width={} height={} scrollable=\"yes\" frameborder=\"no\" />",
         svg_path, svg_width, svg_height))?;
@@ -535,7 +576,7 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     let xml_contents = fs::read_to_string(&config.xml_path)?;
     let sasxml: TopoDigraphXML = serde_xml_rs::from_str(&xml_contents)?;
 
-    let mut digraph = SasDigraph::new();
+    let mut digraph = SasDigraph::new(sasxml.nodename, sasxml.os_version, sasxml.timestamp);
 
     //
     // Iterate through the TopoDigraphXML and recreate the SAS topology in the
