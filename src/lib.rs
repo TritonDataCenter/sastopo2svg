@@ -103,17 +103,27 @@ function showInfo(evt) {
     var name = group.getAttribute("name");
 
     if (name === "initiator") {
-        props = ["fmri", "name", "manufacturer", "model", "serial"]; 
+        props = ["fmri", "hc-fmri", "devfs-name", "name", "manufacturer", "model", "serial", "label"];
     } else if (name === "port") {
         props = ["fmri", "name", "local-sas-address", "attached-sas-address"];
     } else if (name === "expander") {
         props = ["fmri", "name", "devfs-name"];
     } else if (name === "target") {
-        props = ["fmri", "name", "manufacturer", "model"];
+        props = ["fmri", "hc-fmri", "name", "manufacturer", "model", "serial", "label"];
     }
 
     for (const prop of props) {
-        var value = group.getAttribute(prop)
+        var value = group.getAttribute(prop);
+        //
+        // The value for hc-fmri can be quite long, so to make it fit better in
+        // the info panel, we strip out the authority portion of the fmri.
+        //
+        if (prop === "hc-fmri") {
+            end_auth = value.indexOf("/", 6);
+            if (end_auth != -1) {
+                value = "hc://" + value.substring(end_auth);
+            }
+        }
         var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
         prop_element.setAttribute("x", prop_x);
         prop_element.setAttribute("y", prop_y);
@@ -291,7 +301,7 @@ fn build_info_panel(digraph: &SasDigraph) -> Result<Group, Box<dyn Error>> {
     let info_rect = Rectangle::new()
         .set("x", info_x)
         .set("y", info_y)
-        .set("width", 700)
+        .set("width", 900)
         .set("height", 1000)
         .set("fill", "none")
         .set("stroke", "black")
@@ -427,7 +437,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             let vtx_fmri: String = vertices[index].to_string();
             let vtx = digraph.vertices.get_mut(&vtx_fmri).unwrap();
             
-            let x_margin = 750;
+            let x_margin = 950;
             let y_margin = 10;
             let x = ((depth - 1) * 250) + x_margin;
             
