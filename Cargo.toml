@@ -1,6 +1,6 @@
 [package]
 name = "sastopo_xml2svg"
-version = "0.0.8"
+version = "0.0.9"
 authors = ["Rob Johnston <rob.johnston@joyent.com>"]
 license = "MIT"
 edition = "2018"
@@ -12,5 +12,5 @@ log = "0.4.8"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "*"
 serde-xml-rs = "0.3.1"
-svg = "0.5.12"
+svg = "0.6.0"
 topo_digraph_xml = { git = "https://github.com/joyent/topo-digraph-xml" }

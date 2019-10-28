@@ -1,50 +1,47 @@
+
+//
+// Populate the Host Information table when the document is loaded.
+//
+document.addEventListener("DOMContentLoaded", function() {
+    var hostprops = document.getElementById("hostprops");
+    
+    var cell = document.getElementById("nodename");
+    cell.innerHTML = hostprops.getAttribute("nodename");
+
+    cell = document.getElementById("os-version");
+    cell.innerHTML = hostprops.getAttribute("os-version");
+    
+    cell = document.getElementById("timestamp");
+    cell.innerHTML = hostprops.getAttribute("timestamp");
+});
+
 //
 // When a graph vertex is clicked in the SVG, highlight the clicked vertex and
 // and populate the info panel on the left side with the properties of that
 // vertex.
 //
 function showInfo(evt) {
-    var infobox;
-
     //
     // Iterate through the DOM <rect> elements, which represent the graph
-    // vertices and set the fill color to none.  While we're iterating,
-    // cache a reference to the group element for the info panel, which
-    // we'll need later.
+    // vertices and set the fill color to none.
     //
     var allrects = document.getElementsByTagName("rect");
     for (var i = 0; i < allrects.length; i++) {
         allrects[i].setAttribute("fill", "none");
-        var name = allrects[i].getAttribute("name");
-        if (name === "infobox") {
-            infobox = allrects[i].parentElement;
-        }
     }
 
     // Highlight the vertex that was clicked by setting the fill color
     var rect = evt.target.parentElement.getElementsByTagName("rect");
     rect[0].setAttribute("fill", "cyan");
 
-    //
-    // Clear the info panel by iterating through the child <text? elements of
-    // the info panel and removing the ones that have an a special attribute
-    // that indicates there are a vertex property.
-    //
-    var texts = infobox.getElementsByTagName("text");
-    var textarr = Array.from(texts);
-    for (var i = 0; i < textarr.length; i++) {
-        var id = textarr[i].getAttribute("id");
-        if (id === "nodeproperty") {
-            infobox.removeChild(textarr[i]);
-        }
+    // Clear the Node Information table
+    var nodeinfo = document.getElementById("nodeinfo");
+    var numrows = nodeinfo.rows.length;
+    for (var i = 0; i < numrows; i++) {
+        console.log("deleting row ...");
+        nodeinfo.deleteRow(-1);
     }
 
-    //
-    // Finally, create new <text> elements for the properties of the vertex
-    // that was clicked on.
-    //
-    var prop_x = 15;
-    var prop_y = 150;
     var group = evt.target.parentElement;
     var props;
     var name = group.getAttribute("name");
@@ -71,13 +68,10 @@ function showInfo(evt) {
                 value = "hc://" + value.substring(end_auth);
             }
         }
-        var prop_element = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        prop_element.setAttribute("x", prop_x);
-        prop_element.setAttribute("y", prop_y);
-        prop_element.style.fontFamily = "Courier New, Courier, monospace";
-        prop_element.setAttribute("id", "nodeproperty");
-        prop_element.innerHTML = prop + ": " + value;
-        infobox.appendChild(prop_element);
-        prop_y = prop_y + 20;
+        var row = nodeinfo.insertRow(-1);
+        var fieldcell = row.insertCell(-1);
+        fieldcell.innerHTML = prop;
+        var valuecell = row.insertCell(-1);
+        valuecell.innerHTML = value;
     }
 }

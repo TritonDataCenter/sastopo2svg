@@ -27,6 +27,7 @@ use topo_digraph_xml::{
 extern crate svg;
 use svg::Document;
 use svg::node::element::{
+    ForeignObject,
     Group,
     Line,
     Rectangle,
@@ -207,67 +208,6 @@ fn visit_vertex(vertices: &HashMap<String, SasDigraphVertex>,
     Ok(max_depth)
 }
 
-fn build_info_panel(digraph: &SasDigraph) -> Result<Group, Box<dyn Error>> {
-
-    let info_x = 10;
-    let info_y = 10;
-    let info_rect = Rectangle::new()
-        .set("x", info_x)
-        .set("y", info_y)
-        .set("width", 900)
-        .set("height", 1000)
-        .set("fill", "none")
-        .set("stroke", "black")
-        .set("stroke-width", 3)
-        .set("name", "infobox");
-
-    let txt = svg::node::Text::new("Host Information");
-    let heading1 = Text::new()
-        .set("x", info_x + 5)
-        .set("y", info_y + 20)
-        .set("font-size", "x-large")
-        .set("font-family", "Courier New, Courier, monospace")
-        .add(txt);
-
-    let txt = svg::node::Text::new(format!("Nodename: {}", &digraph.nodename));
-    let nodename = Text::new()
-        .set("x", info_x + 5)
-        .set("y", info_y + 40)
-        .set("font-family", "Courier New, Courier, monospace")
-        .add(txt);
-
-    let txt = svg::node::Text::new(format!("OS Version: {}", &digraph.os_version));
-    let os_version = Text::new()
-        .set("x", info_x + 5)
-        .set("y", info_y + 60)
-        .set("font-family", "Courier New, Courier, monospace")
-        .add(txt);
-
-    let txt = svg::node::Text::new(format!("Snapshot Time: {}", &digraph.timestamp));
-    let timestamp = Text::new()
-        .set("x", info_x + 5)
-        .set("y", info_y + 80)
-        .set("font-family", "Courier New, Courier, monospace")
-        .add(txt);
-
-    let txt = svg::node::Text::new("Node Properties");
-    let heading2 = Text::new()
-        .set("x", info_x + 5)
-        .set("y", info_y + 120)
-        .set("font-size", "x-large")
-        .set("font-family", "Courier New, Courier, monospace")
-        .add(txt);
-
-    let info_group = Group::new()
-        .add(info_rect)
-        .add(heading1)
-        .add(nodename)
-        .add(os_version)
-        .add(timestamp)
-        .add(heading2);
-
-    Ok(info_group)
-}
 
 //
 // Generates an SVG representation of the directed graph and save it to a file.
@@ -280,7 +220,23 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let depth: u32 = 0;
 
     //
-    // First we iterate over all of the paths through the digraph starting from
+    // First we create a hidden element that we can attach the host information
+    // prooperties to.  The JS code will reference those to populate the Host
+    // Information table,
+    //
+    let hostinfo = Rectangle::new()
+        .set("x", 1)
+        .set("y", 1)
+        .set("width", 1)
+        .set("height", 1)
+        .set("visibility", "hidden")
+        .set("id", "hostprops")
+        .set("nodename", digraph.nodename.clone())
+        .set("os-version", digraph.os_version.clone())
+        .set("timestamp", digraph.timestamp.clone());
+    
+    //
+    // Next we iterate over all of the paths through the digraph starting from
     // the initiator vertices.  There are two purposes here:
     //
     // The first is to calculate the maximum depth (width) of the graph.
@@ -335,13 +291,21 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let on_click = Script::new(script)
         .set("type", "application/ecmascript");
 
-    let info_group = build_info_panel(&digraph)?;
+    let html_code = include_str!("sastopo2svg.html");
+    let html_txt = svg::node::Text::new(html_code);
+    let foreign = ForeignObject::new()
+        .set("x", 10)
+        .set("y", 10)
+        .set("height", 700)
+        .set("width", 900)
+        .add(html_txt);
 
     let mut document = Document::new()
         .set("overflow", "scroll")
         .set("viewbox", (0, 0, (100 * max_depth), (250 * max_height)))
         .add(on_click)
-        .add(info_group);
+        .add(foreign)
+        .add(hostinfo);
 
     let vtx_width = 180;
     let vtx_height = 70;
