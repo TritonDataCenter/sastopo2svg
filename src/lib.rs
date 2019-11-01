@@ -167,7 +167,23 @@ fn parse_prop(nvl: &NvlistXmlArrayElement) -> Result<SasDigraphProperty, Box<dyn
 
         match nvpair.name.as_ref().unwrap().as_ref() {
             PROP_NAME => { propname = Some(nvpair.value.as_ref().unwrap().clone()); }
-            PROP_VALUE => { propval = Some(nvpair.value.as_ref().unwrap().clone()); }
+            PROP_VALUE => {
+                if nvpair.nvpair_elements.is_some() {
+                    //
+                    // If nvpair_elements is something then this is an array
+                    // type in which case we iterate through the child nvpairs
+                    // and create a string with all the array values,
+                    // delimited by a comma.
+                    //
+                    let mut valarr = Vec::new();
+                    for elem in nvpair.nvpair_elements.as_ref().unwrap() {
+                        valarr.push(elem.value.as_ref().unwrap().clone());
+                    }
+                    propval = Some(valarr.join(","));
+                } else {
+                    propval = Some(nvpair.value.as_ref().unwrap().clone());
+                }
+            }
             _ => {}
         }
     }
