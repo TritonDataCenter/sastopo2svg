@@ -23,11 +23,11 @@ document.addEventListener("DOMContentLoaded", function() {
 function showInfo(evt) {
     //
     // Iterate through the DOM <rect> elements, which represent the graph
-    // vertices and set the fill color to none.
+    // vertices and set the fill color to white.
     //
     var allrects = document.getElementsByTagName("rect");
     for (var i = 0; i < allrects.length; i++) {
-        allrects[i].setAttribute("fill", "none");
+        allrects[i].setAttribute("fill", "white");
     }
 
     // Highlight the vertex that was clicked by setting the fill color
@@ -82,8 +82,7 @@ function showInfo(evt) {
         }
         var row = nodeinfo.insertRow(-1);
         var fieldcell = row.insertCell(-1);
-        fieldcell.innerHTML = prop;
-        fieldcell.style.bold = true;
+        fieldcell.innerHTML = prop.bold();
         var valuecell = row.insertCell(-1);
         valuecell.colSpan = 4;
         valuecell.innerHTML = value;
@@ -98,7 +97,8 @@ function showInfo(evt) {
         var fmri = group.getAttribute("fmri");
         var regex = /start-phy=(\d+):end-phy=(\d+)/g;
         var match = regex.exec(fmri);
-        num_phys = (match[2] - match[1]) + 1;
+        var start_phy = match[1];
+        var num_phys = (match[2] - match[1]) + 1;
 
         var phys = [];
         for (i = 0; i < num_phys; i++) {
@@ -111,10 +111,10 @@ function showInfo(evt) {
         }
         for (const prop of link_err_props) {
             var value = group.getAttribute(prop);
-            if (value === undefined) {
+            if (value === undefined || value == null) {
                 return;
             }
-            var value = group.getAttribute(prop).split(",");
+            value = value.split(",");
             for (phy = 0; phy < value.length; phy++) {
                 phys[phy][prop].push(value[phy]);
             }
@@ -125,15 +125,15 @@ function showInfo(evt) {
 
         var hdrrow = errinfo.insertRow(-1);
         var hdrcell = hdrrow.insertCell(-1);
-        hdrcell.innerHTML = "PHY #";
+        hdrcell.innerHTML = "PHY #".bold();
         for (const prop of link_err_props) {
             hdrcell = hdrrow.insertCell(-1);
-            hdrcell.innerHTML = prop;
+            hdrcell.innerHTML = prop.bold();
         }
         for (i = 0; i < num_phys; i++) {
             var errrow = errinfo.insertRow(-1);
             var errcell = errrow.insertCell(-1)
-            errcell.innerHTML = i;
+            errcell.innerHTML = (+start_phy + +i);
             for (const prop of link_err_props) {
                 errcell = errrow.insertCell(-1);
                 errcell.innerHTML = phys[i][prop];

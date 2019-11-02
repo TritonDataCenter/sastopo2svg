@@ -336,7 +336,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             let vtx_fmri: String = vertices[index].to_string();
             let vtx = digraph.vertices.get_mut(&vtx_fmri).unwrap();
             
-            let x_margin = 950;
+            let x_margin = 850;
             let y_margin = 10;
             let x = ((depth - 1) * 250) + x_margin;
             
@@ -353,7 +353,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
                 .set("y", y)
                 .set("width", vtx_width)
                 .set("height", vtx_height)
-                .set("fill", "none")
+                .set("fill", "white")
                 .set("stroke", "black")
                 .set("stroke-width", 3);
 
@@ -463,11 +463,12 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     // So to allow it to be more easily viewable in a browser, we embed the
     // SVG in a scrollable HTML iframe.
     //
-    let svg_width = cmp::max(2000, max_depth * 375);
-    let svg_height = cmp::max(1100, max_height * 100);
+    let svg_width = cmp::max(2000, max_depth * 350);
+    let svg_height = cmp::max(1100, max_height * 105);
 
     let mut htmlfile = fs::File::create(&config.html_path)?;
-    htmlfile.write_fmt(format_args!("<html><title>SAS Topology</title><body>\n"))?;
+    htmlfile.write_fmt(format_args!(
+        "<html><title>SAS Topology</title><body bgcolor=\"EEEEEE\">\n"))?;
     htmlfile.write_fmt(format_args!(
         "<iframe src=\"{}\" width={} height={} scrollable=\"yes\" frameborder=\"no\" />",
         svg_path, svg_width, svg_height))?;
