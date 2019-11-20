@@ -58,7 +58,7 @@ function showInfo(evt) {
 
     if (name === "initiator") {
         props = ["fmri", "hc-fmri", "devfs-name", "name", "manufacturer",
-            "model", "serial", "label"];
+            "model", "location"];
     } else if (name === "port") {
         props = ["fmri", "name", "sas-port-type", "local-sas-address",
             "attached-sas-address"];
@@ -66,7 +66,7 @@ function showInfo(evt) {
         props = ["fmri", "name", "devfs-name"];
     } else if (name === "target") {
         props = ["fmri", "hc-fmri", "name", "logical-disk", "manufacturer",
-            "model", "serial-number", "label"];
+            "model", "serial-number", "location"];
     }
 
     for (const prop of props) {
