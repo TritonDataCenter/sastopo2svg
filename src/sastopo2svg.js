@@ -52,7 +52,7 @@ function showInfo(evt) {
 
     var group = evt.target.parentElement;
     var link_err_props = ["invalid-dword", "running-disparity-error",
-        "loss-dword-sync", "reset-problem"];
+        "loss-dword-sync", "reset-problem-count"];
     var props;
     var name = group.getAttribute("name");
 
@@ -60,12 +60,13 @@ function showInfo(evt) {
         props = ["fmri", "hc-fmri", "devfs-name", "name", "manufacturer",
             "model", "serial", "label"];
     } else if (name === "port") {
-        props = ["fmri", "name", "local-sas-address", "attached-sas-address"];
+        props = ["fmri", "name", "sas-port-type", "local-sas-address",
+            "attached-sas-address"];
     } else if (name === "expander") {
         props = ["fmri", "name", "devfs-name"];
     } else if (name === "target") {
-        props = ["fmri", "hc-fmri", "name", "manufacturer", "model", "serial",
-            "label"];
+        props = ["fmri", "hc-fmri", "name", "logical-disk", "manufacturer",
+            "model", "serial-number", "label"];
     }
 
     for (const prop of props) {
