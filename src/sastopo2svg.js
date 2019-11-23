@@ -15,6 +15,22 @@ document.addEventListener("DOMContentLoaded", function() {
     cell.innerHTML = hostprops.getAttribute("timestamp");
 });
 
+var link_rate_strings = [
+    "Unknown",
+    "Disabled",
+    "Reset problem",
+    "Enabled, spin hold",
+    "SATA link rate still negotiating",
+    "Reset in progress",
+    "Unsupported device attached",
+    "0x07, Reserved",
+    "1.5 Gbits/s",
+    "3.0 Gbits/s",
+    "6.0 GBits/s",
+    "12.0 GBits/s",
+    "22.5 GBits/s"
+];
+
 //
 // When a graph vertex is clicked in the SVG, highlight the clicked vertex and
 // and populate the info panel on the left side with the properties of that
@@ -41,6 +57,15 @@ function showInfo(evt) {
         nodeinfo.deleteRow(-1);
     }
 
+    // Clear and hide the PHY link rate table
+    var ratetable = document.getElementById("ratetable");
+    ratetable.hidden = true;
+    var rateinfo = document.getElementById("rateinfo");
+    numrows = rateinfo.rows.length;
+    for (var i = 0; i < numrows; i++) {
+        rateinfo.deleteRow(-1);
+    }
+
     // Clear and hide the PHY err table
     var errtable = document.getElementById("errtable");
     errtable.hidden = true;
@@ -51,6 +76,7 @@ function showInfo(evt) {
     }
 
     var group = evt.target.parentElement;
+    var link_rate_props = ["negotiated-link-rate"];
     var link_err_props = ["invalid-dword", "running-disparity-error",
         "loss-dword-sync", "reset-problem-count"];
     var props;
@@ -102,6 +128,44 @@ function showInfo(evt) {
         var num_phys = (match[2] - match[1]) + 1;
 
         var phys = [];
+        for (i = 0; i < num_phys; i++) {
+            phys[i] = {
+                [link_rate_props[0]]: []
+            };
+        }
+        for (const prop of link_rate_props) {
+            var value = group.getAttribute(prop);
+            if (value === undefined || value == null) {
+                return;
+            }
+            value = value.split(",");
+            for (phy = 0; phy < value.length; phy++) {
+                var value_str = link_rate_strings[+value[phy]];
+                phys[phy][prop].push(value_str);
+            }
+        }
+
+        // Unhide the PHY Link Rate table
+        ratetable.hidden = false;
+
+        var hdrrow = rateinfo.insertRow(-1);
+        var hdrcell = hdrrow.insertCell(-1);
+        hdrcell.innerHTML = "PHY #".bold();
+        for (const prop of link_rate_props) {
+            hdrcell = hdrrow.insertCell(-1);
+            hdrcell.innerHTML = prop.bold();
+        }
+        for (i = 0; i < num_phys; i++) {
+            var raterow = rateinfo.insertRow(-1);
+            var ratecell = raterow.insertCell(-1)
+            ratecell.innerHTML = (+start_phy + +i);
+            for (const prop of link_rate_props) {
+                ratecell = raterow.insertCell(-1);
+                ratecell.innerHTML = phys[i][prop];
+            }
+        }
+
+        phys = [];
         for (i = 0; i < num_phys; i++) {
             phys[i] = {
                 [link_err_props[0]]: [],
