@@ -76,7 +76,7 @@ function showInfo(evt) {
     }
 
     var group = evt.target.parentElement;
-    var link_rate_props = ["negotiated-link-rate"];
+    var link_rate_props = ["max-link-rate", "negotiated-link-rate"];
     var link_err_props = ["invalid-dword", "running-disparity-error",
         "loss-dword-sync", "reset-problem-count"];
     var props;
@@ -130,7 +130,8 @@ function showInfo(evt) {
         var phys = [];
         for (i = 0; i < num_phys; i++) {
             phys[i] = {
-                [link_rate_props[0]]: []
+                [link_rate_props[0]]: [],
+                [link_rate_props[1]]: []
             };
         }
         for (const prop of link_rate_props) {

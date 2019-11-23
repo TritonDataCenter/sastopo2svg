@@ -237,7 +237,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
 
     //
     // First we create a hidden element that we can attach the host information
-    // prooperties to.  The JS code will reference those to populate the Host
+    // properties to.  The JS code will reference those to populate the Host
     // Information table,
     //
     let hostinfo = Rectangle::new()
@@ -312,7 +312,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let foreign = ForeignObject::new()
         .set("x", 10)
         .set("y", 10)
-        .set("height", 700)
+        .set("height", 900)
         .set("width", 900)
         .add(html_txt);
 
@@ -514,7 +514,7 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
 
         //
         // The XML contains a set of nested NvpairXML structures representing
-        // the node property groups and their contains properties.  We descend
+        // the node property groups and their contained properties.  We descend
         // through these to build an array of SasDigraphProperty structs which
         // will contains a subset of properties that we want to display when
         // the vertex is clicked on.
