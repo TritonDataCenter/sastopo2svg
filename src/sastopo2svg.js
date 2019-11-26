@@ -5,6 +5,9 @@
 document.addEventListener("DOMContentLoaded", function() {
     var hostprops = document.getElementById("hostprops");
     
+    var cell = document.getElementById("product-id");
+    cell.innerHTML = hostprops.getAttribute("product-id");
+
     var cell = document.getElementById("nodename");
     cell.innerHTML = hostprops.getAttribute("nodename");
 

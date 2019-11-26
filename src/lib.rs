@@ -116,6 +116,8 @@ impl SasDigraphVertex {
 
 #[derive(Debug)]
 struct SasDigraph {
+    // server product ID
+    product_id: String,
     // machine nodename
     nodename: String,
     // OS version
@@ -129,11 +131,12 @@ struct SasDigraph {
 }
 
 impl SasDigraph {
-    fn new(nodename: String, os_version: String, timestamp: String) -> SasDigraph {
+    fn new(product_id: String, nodename: String, os_version: String, timestamp: String) -> SasDigraph {
         let vertices = HashMap::new();
         let initiators = Vec::new();
 
         SasDigraph {
+            product_id,
             nodename,
             os_version,
             timestamp,
@@ -247,6 +250,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
         .set("height", 1)
         .set("visibility", "hidden")
         .set("id", "hostprops")
+        .set("product-id", digraph.product_id.clone())
         .set("nodename", digraph.nodename.clone())
         .set("os-version", digraph.os_version.clone())
         .set("timestamp", digraph.timestamp.clone());
@@ -312,7 +316,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let foreign = ForeignObject::new()
         .set("x", 10)
         .set("y", 10)
-        .set("height", 900)
+        .set("height", 950)
         .set("width", 900)
         .add(html_txt);
 
@@ -486,7 +490,7 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     let xml_contents = fs::read_to_string(&config.xml_path)?;
     let sasxml: TopoDigraphXML = serde_xml_rs::from_str(&xml_contents)?;
 
-    let mut digraph = SasDigraph::new(sasxml.nodename, sasxml.os_version, sasxml.timestamp);
+    let mut digraph = SasDigraph::new(sasxml.product_id, sasxml.nodename, sasxml.os_version, sasxml.timestamp);
 
     //
     // Iterate through the TopoDigraphXML and recreate the SAS topology in the
