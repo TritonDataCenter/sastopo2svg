@@ -6,13 +6,14 @@
         "plugin:joyent/lint"
     ],
     "parserOptions": {
-        "ecmaVersion": 5,
+        "ecmaVersion": 6,
         "sourceType": "script",
         "ecmaFeatures": {
         }
     },
     "env": {
-        "node": true
+        "es6": true,
+        "browser": true
     },
     "rules": {
         // Lint:
