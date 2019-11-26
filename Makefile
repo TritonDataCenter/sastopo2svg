@@ -12,7 +12,7 @@ JS_FILES =		src/sastopo2svg.js
 RS_FILES =		src/main.rs src/lib.rs
 JSSTYLE = 		deps/jsstyle/jsstyle
 JSSTYLE_FILES =		$(JS_FILES)
-JSSTYLE_FLAGS =		-f deps/eng/tools/jsstyle.conf
+JSSTYLE_FLAGS =		-f tools/jsstyle.conf
 ESLINT_FILES =		$(JS_FILES)
 
 NPM=npm

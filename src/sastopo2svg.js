@@ -1,37 +1,38 @@
+'use strict';
 
 //
 // Populate the Host Information table when the document is loaded.
 //
-document.addEventListener("DOMContentLoaded", function() {
-    var hostprops = document.getElementById("hostprops");
-    
-    var cell = document.getElementById("product-id");
-    cell.innerHTML = hostprops.getAttribute("product-id");
+document.addEventListener('DOMContentLoaded', function () {
+    var hostprops = document.getElementById('hostprops');
 
-    var cell = document.getElementById("nodename");
-    cell.innerHTML = hostprops.getAttribute("nodename");
+    var cell = document.getElementById('product-id');
+    cell.innerHTML = hostprops.getAttribute('product-id');
 
-    cell = document.getElementById("os-version");
-    cell.innerHTML = hostprops.getAttribute("os-version");
-    
-    cell = document.getElementById("timestamp");
-    cell.innerHTML = hostprops.getAttribute("timestamp");
+    cell = document.getElementById('nodename');
+    cell.innerHTML = hostprops.getAttribute('nodename');
+
+    cell = document.getElementById('os-version');
+    cell.innerHTML = hostprops.getAttribute('os-version');
+
+    cell = document.getElementById('timestamp');
+    cell.innerHTML = hostprops.getAttribute('timestamp');
 });
 
 var link_rate_strings = [
-    "Unknown",
-    "Disabled",
-    "Reset problem",
-    "Enabled, spin hold",
-    "SATA link rate still negotiating",
-    "Reset in progress",
-    "Unsupported device attached",
-    "0x07, Reserved",
-    "1.5 Gbits/s",
-    "3.0 Gbits/s",
-    "6.0 GBits/s",
-    "12.0 GBits/s",
-    "22.5 GBits/s"
+    'Unknown',
+    'Disabled',
+    'Reset problem',
+    'Enabled, spin hold',
+    'SATA link rate still negotiating',
+    'Reset in progress',
+    'Unsupported device attached',
+    '0x07, Reserved',
+    '1.5 Gbits/s',
+    '3.0 Gbits/s',
+    '6.0 GBits/s',
+    '12.0 GBits/s',
+    '22.5 GBits/s'
 ];
 
 //
@@ -39,75 +40,75 @@ var link_rate_strings = [
 // and populate the info panel on the left side with the properties of that
 // vertex.
 //
-function showInfo(evt) {
+function showInfo(evt) { // eslint-disable-line no-unused-vars
     //
     // Iterate through the DOM <rect> elements, which represent the graph
     // vertices and set the fill color to white.
     //
-    var allrects = document.getElementsByTagName("rect");
-    for (var i = 0; i < allrects.length; i++) {
-        allrects[i].setAttribute("fill", "white");
+    var allrects = document.getElementsByTagName('rect');
+    for (let i = 0; i < allrects.length; i++) {
+        allrects[i].setAttribute('fill', 'white');
     }
 
     // Highlight the vertex that was clicked by setting the fill color
-    var rect = evt.target.parentElement.getElementsByTagName("rect");
-    rect[0].setAttribute("fill", "cyan");
+    var rect = evt.target.parentElement.getElementsByTagName('rect');
+    rect[0].setAttribute('fill', 'cyan');
 
     // Clear the Node Information table
-    var nodeinfo = document.getElementById("nodeinfo");
+    var nodeinfo = document.getElementById('nodeinfo');
     var numrows = nodeinfo.rows.length;
-    for (var i = 0; i < numrows; i++) {
+    for (let i = 0; i < numrows; i++) {
         nodeinfo.deleteRow(-1);
     }
 
     // Clear and hide the PHY link rate table
-    var ratetable = document.getElementById("ratetable");
+    var ratetable = document.getElementById('ratetable');
     ratetable.hidden = true;
-    var rateinfo = document.getElementById("rateinfo");
+    var rateinfo = document.getElementById('rateinfo');
     numrows = rateinfo.rows.length;
-    for (var i = 0; i < numrows; i++) {
+    for (let i = 0; i < numrows; i++) {
         rateinfo.deleteRow(-1);
     }
 
     // Clear and hide the PHY err table
-    var errtable = document.getElementById("errtable");
+    var errtable = document.getElementById('errtable');
     errtable.hidden = true;
-    var errinfo = document.getElementById("errinfo");
+    var errinfo = document.getElementById('errinfo');
     numrows = errinfo.rows.length;
-    for (var i = 0; i < numrows; i++) {
+    for (let i = 0; i < numrows; i++) {
         errinfo.deleteRow(-1);
     }
 
     var group = evt.target.parentElement;
-    var link_rate_props = ["max-link-rate", "negotiated-link-rate"];
-    var link_err_props = ["invalid-dword", "running-disparity-error",
-        "loss-dword-sync", "reset-problem-count"];
+    var link_rate_props = ['max-link-rate', 'negotiated-link-rate'];
+    var link_err_props = ['invalid-dword', 'running-disparity-error',
+        'loss-dword-sync', 'reset-problem-count'];
     var props;
-    var name = group.getAttribute("name");
+    var name = group.getAttribute('name');
 
-    if (name === "initiator") {
-        props = ["fmri", "hc-fmri", "devfs-name", "name", "manufacturer",
-            "model", "location"];
-    } else if (name === "port") {
-        props = ["fmri", "name", "sas-port-type", "local-sas-address",
-            "attached-sas-address"];
-    } else if (name === "expander") {
-        props = ["fmri", "name", "devfs-name"];
-    } else if (name === "target") {
-        props = ["fmri", "hc-fmri", "name", "logical-disk", "manufacturer",
-            "model", "serial-number", "location"];
+    if (name === 'initiator') {
+        props = ['fmri', 'hc-fmri', 'devfs-name', 'name', 'manufacturer',
+            'model', 'location'];
+    } else if (name === 'port') {
+        props = ['fmri', 'name', 'sas-port-type', 'local-sas-address',
+            'attached-sas-address'];
+    } else if (name === 'expander') {
+        props = ['fmri', 'name', 'devfs-name'];
+    } else if (name === 'target') {
+        props = ['fmri', 'hc-fmri', 'name', 'logical-disk', 'manufacturer',
+            'model', 'serial-number', 'location'];
     }
 
     for (const prop of props) {
-        var value = group.getAttribute(prop);
+        let value = group.getAttribute(prop);
         //
         // The value for hc-fmri can be quite long, so to make it fit better in
         // the info panel, we strip out the authority portion of the fmri.
         //
-        if (prop === "hc-fmri") {
-            end_auth = value.indexOf("/", 6);
-            if (end_auth != -1) {
-                value = "hc://" + value.substring(end_auth);
+        if (prop === 'hc-fmri') {
+            let end_auth = value.indexOf('/', 6);
+            if (end_auth !== -1) {
+                value = 'hc://' + value.substring(end_auth);
             }
         }
         var row = nodeinfo.insertRow(-1);
@@ -118,33 +119,34 @@ function showInfo(evt) {
         valuecell.innerHTML = value;
     }
 
-    if (name == "port") {
+    if (name === 'port') {
         //
         // Determine the number of phys on this port by scraping out the
         // start_phy and end_phy fields from the authority portion of this
         // node's sas-scheme FMRI.
         //
-        var fmri = group.getAttribute("fmri");
+        var fmri = group.getAttribute('fmri');
+        /* JSSTYLED */
         var regex = /start-phy=(\d+):end-phy=(\d+)/g;
         var match = regex.exec(fmri);
         var start_phy = match[1];
         var num_phys = (match[2] - match[1]) + 1;
 
         var phys = [];
-        for (i = 0; i < num_phys; i++) {
+        for (let i = 0; i < num_phys; i++) {
             phys[i] = {
                 [link_rate_props[0]]: [],
                 [link_rate_props[1]]: []
             };
         }
         for (const prop of link_rate_props) {
-            var value = group.getAttribute(prop);
-            if (value === undefined || value == null) {
+            let value = group.getAttribute(prop);
+            if (value === undefined || value === null) {
                 return;
             }
-            value = value.split(",");
-            for (phy = 0; phy < value.length; phy++) {
-                var value_str = link_rate_strings[+value[phy]];
+            value = value.split(',');
+            for (let phy = 0; phy < value.length; phy++) {
+                let value_str = link_rate_strings[+value[phy]];
                 phys[phy][prop].push(value_str);
             }
         }
@@ -154,14 +156,14 @@ function showInfo(evt) {
 
         var hdrrow = rateinfo.insertRow(-1);
         var hdrcell = hdrrow.insertCell(-1);
-        hdrcell.innerHTML = "PHY #".bold();
+        hdrcell.innerHTML = 'PHY #'.bold();
         for (const prop of link_rate_props) {
             hdrcell = hdrrow.insertCell(-1);
             hdrcell.innerHTML = prop.bold();
         }
-        for (i = 0; i < num_phys; i++) {
-            var raterow = rateinfo.insertRow(-1);
-            var ratecell = raterow.insertCell(-1)
+        for (let i = 0; i < num_phys; i++) {
+            let raterow = rateinfo.insertRow(-1);
+            let ratecell = raterow.insertCell(-1);
             ratecell.innerHTML = (+start_phy + +i);
             for (const prop of link_rate_props) {
                 ratecell = raterow.insertCell(-1);
@@ -170,7 +172,7 @@ function showInfo(evt) {
         }
 
         phys = [];
-        for (i = 0; i < num_phys; i++) {
+        for (let i = 0; i < num_phys; i++) {
             phys[i] = {
                 [link_err_props[0]]: [],
                 [link_err_props[1]]: [],
@@ -180,11 +182,11 @@ function showInfo(evt) {
         }
         for (const prop of link_err_props) {
             var value = group.getAttribute(prop);
-            if (value === undefined || value == null) {
+            if (value === undefined || value === null) {
                 return;
             }
-            value = value.split(",");
-            for (phy = 0; phy < value.length; phy++) {
+            value = value.split(',');
+            for (let phy = 0; phy < value.length; phy++) {
                 phys[phy][prop].push(value[phy]);
             }
         }
@@ -192,16 +194,16 @@ function showInfo(evt) {
         // Unhide the PHY Error table
         errtable.hidden = false;
 
-        var hdrrow = errinfo.insertRow(-1);
-        var hdrcell = hdrrow.insertCell(-1);
-        hdrcell.innerHTML = "PHY #".bold();
+        hdrrow = errinfo.insertRow(-1);
+        hdrcell = hdrrow.insertCell(-1);
+        hdrcell.innerHTML = 'PHY #'.bold();
         for (const prop of link_err_props) {
             hdrcell = hdrrow.insertCell(-1);
             hdrcell.innerHTML = prop.bold();
         }
-        for (i = 0; i < num_phys; i++) {
+        for (let i = 0; i < num_phys; i++) {
             var errrow = errinfo.insertRow(-1);
-            var errcell = errrow.insertCell(-1)
+            var errcell = errrow.insertCell(-1);
             errcell.innerHTML = (+start_phy + +i);
             for (const prop of link_err_props) {
                 errcell = errrow.insertCell(-1);
