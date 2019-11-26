@@ -1,0 +1,31 @@
+{
+    "plugins": [ "joyent" ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:joyent/style",
+        "plugin:joyent/lint"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 5,
+        "sourceType": "script",
+        "ecmaFeatures": {
+        }
+    },
+    "env": {
+        "node": true
+    },
+    "rules": {
+        // Lint:
+        "strict": [ "error", "global" ],
+
+        // Style:
+        "func-style": [ "error", "declaration" ],
+
+        "consistent-return": "error",
+
+	"no-invalid-this": off,
+
+        "no-inner-declarations": off
+    }
+}
+
