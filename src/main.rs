@@ -6,8 +6,8 @@
 // Copyright 2019 Joyent, Inc.
 //
 //
-extern crate log;
 extern crate env_logger;
+extern crate log;
 
 extern crate getopts;
 use getopts::Options;

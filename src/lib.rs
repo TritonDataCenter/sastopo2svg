@@ -5,35 +5,23 @@
 //
 // Copyright 2019 Joyent, Inc.
 //
-extern crate log;
 extern crate env_logger;
+extern crate log;
 
 use log::debug;
 
-extern crate serde_derive;
 extern crate serde;
+extern crate serde_derive;
 extern crate serde_xml_rs;
 
 extern crate topo_digraph_xml;
 use topo_digraph_xml::{
-    NvlistXmlArrayElement,
-    TopoDigraphXML,
-    PG_NAME,
-    PG_VALS,
-    PROP_NAME,
-    PROP_VALUE,
+    NvlistXmlArrayElement, TopoDigraphXML, PG_NAME, PG_VALS, PROP_NAME, PROP_VALUE,
 };
 
 extern crate svg;
+use svg::node::element::{ForeignObject, Group, Line, Rectangle, Script, Text};
 use svg::Document;
-use svg::node::element::{
-    ForeignObject,
-    Group,
-    Line,
-    Rectangle,
-    Script,
-    Text
-};
 
 use std::cmp;
 use std::collections::HashMap;
@@ -71,11 +59,12 @@ struct SasGeometry {
 }
 
 impl SasGeometry {
-    fn new(x: u32, y: u32, width: u32, height: u32)
-        -> SasGeometry {
-
+    fn new(x: u32, y: u32, width: u32, height: u32) -> SasGeometry {
         SasGeometry {
-            x, y, width, height,
+            x,
+            y,
+            width,
+            height,
         }
     }
 }
@@ -103,13 +92,21 @@ struct SasDigraphVertex {
 }
 
 impl SasDigraphVertex {
-    fn new(fmri: String, name: String, instance: u64, outgoing_edges: Option<Vec<String>>)
-        -> SasDigraphVertex {
-
+    fn new(
+        fmri: String,
+        name: String,
+        instance: u64,
+        outgoing_edges: Option<Vec<String>>,
+    ) -> SasDigraphVertex {
         let properties = Vec::new();
         let geometry = SasGeometry::new(0, 0, 0, 0);
         SasDigraphVertex {
-            fmri, name, instance, properties, geometry, outgoing_edges
+            fmri,
+            name,
+            instance,
+            properties,
+            geometry,
+            outgoing_edges,
         }
     }
 }
@@ -131,7 +128,12 @@ struct SasDigraph {
 }
 
 impl SasDigraph {
-    fn new(product_id: String, nodename: String, os_version: String, timestamp: String) -> SasDigraph {
+    fn new(
+        product_id: String,
+        nodename: String,
+        os_version: String,
+        timestamp: String,
+    ) -> SasDigraph {
         let vertices = HashMap::new();
         let initiators = Vec::new();
 
@@ -154,7 +156,10 @@ pub struct Config {
 
 impl Config {
     pub fn new(html_path: String, xml_path: String) -> Config {
-        Config { html_path, xml_path }
+        Config {
+            html_path,
+            xml_path,
+        }
     }
 }
 
@@ -167,9 +172,10 @@ fn parse_prop(nvl: &NvlistXmlArrayElement) -> Result<SasDigraphProperty, Box<dyn
     let mut propval: Option<String> = None;
 
     for nvpair in &nvl.nvpairs {
-
         match nvpair.name.as_ref().unwrap().as_ref() {
-            PROP_NAME => { propname = Some(nvpair.value.as_ref().unwrap().clone()); }
+            PROP_NAME => {
+                propname = Some(nvpair.value.as_ref().unwrap().clone());
+            }
             PROP_VALUE => {
                 if nvpair.nvpair_elements.is_some() {
                     //
@@ -191,29 +197,33 @@ fn parse_prop(nvl: &NvlistXmlArrayElement) -> Result<SasDigraphProperty, Box<dyn
         }
     }
 
-    if propname.is_none() || propval.is_none() {
-        Err(Box::new(SimpleError(format!("malformed property value nvlist: {:?}", nvl))))
+    if let (Some(name), Some(val)) = (propname, propval) {
+        Ok(SasDigraphProperty::new(name, val))
     } else {
-        Ok(SasDigraphProperty::new(propname.unwrap(), propval.unwrap()))
+        Err(Box::new(SimpleError(format!(
+            "malformed property value nvlist: {:?}",
+            nvl
+        ))))
     }
 }
 
-fn visit_vertex(vertices: &HashMap<String, SasDigraphVertex>, 
-    vtx: &SasDigraphVertex, column_hash: &mut HashMap<u32, Vec<String>>,
-    depth: u32) -> Result<u32, Box<dyn Error>> {
-    
+fn visit_vertex(
+    vertices: &HashMap<String, SasDigraphVertex>,
+    vtx: &SasDigraphVertex,
+    column_hash: &mut HashMap<u32, Vec<String>>,
+    depth: u32,
+) -> Result<u32, Box<dyn Error>> {
     let mut max_depth = depth + 1;
 
-    column_hash.entry(max_depth)
+    column_hash
+        .entry(max_depth)
         .or_insert_with(Vec::new)
         .push(vtx.fmri.clone());
 
     if vtx.outgoing_edges.is_some() {
         for edge in vtx.outgoing_edges.as_ref().unwrap() {
             let next_vtx = match vertices.get(&edge.to_string()) {
-                Some(entry) => {
-                    entry.clone()
-                }
+                Some(entry) => entry,
                 None => {
                     return Err(Box::new(SimpleError("failed to lookup vertex".to_string())));
                 }
@@ -227,12 +237,10 @@ fn visit_vertex(vertices: &HashMap<String, SasDigraphVertex>,
     Ok(max_depth)
 }
 
-
 //
 // Generates an SVG representation of the directed graph and save it to a file.
 //
 fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Error>> {
-    
     let mut max_depth: u32 = 0;
     let mut max_height: usize = 0;
     let mut column_hash: HashMap<u32, Vec<String>> = HashMap::new();
@@ -254,7 +262,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
         .set("nodename", digraph.nodename.clone())
         .set("os-version", digraph.os_version.clone())
         .set("timestamp", digraph.timestamp.clone());
-    
+
     //
     // Next we iterate over all of the paths through the digraph starting from
     // the initiator vertices.  There are two purposes here:
@@ -273,14 +281,12 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     for fmri in &digraph.initiators {
         debug!("initiator: {}", fmri);
         let vtx = match digraph.vertices.get(&fmri.to_string()) {
-            Some(entry) => {
-                entry.clone()
-            }
+            Some(entry) => entry,
             None => {
                 return Err(Box::new(SimpleError("failed to lookup vertex".to_string())));
             }
         };
-    
+
         let rc = visit_vertex(&digraph.vertices, vtx, &mut column_hash, depth)?;
         if rc > max_depth {
             max_depth = rc;
@@ -289,10 +295,8 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
 
     for i in 1..=max_depth {
         let height = match column_hash.get(&i) {
-            Some(entry) => {
-                entry.len()
-            }
-            None => { 0 }
+            Some(entry) => entry.len(),
+            None => 0,
         };
         debug!("depth: {} has height {}", i, height);
         if height > max_height {
@@ -308,8 +312,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     script.push_str(js_code);
     script.push_str("]]>");
 
-    let on_click = Script::new(script)
-        .set("type", "application/ecmascript");
+    let on_click = Script::new(script).set("type", "application/ecmascript");
 
     let html_code = include_str!("sastopo2svg.html");
     let html_txt = svg::node::Text::new(html_code);
@@ -339,19 +342,21 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             let height: u32 = (index + 1).try_into().unwrap();
             let vtx_fmri: String = vertices[index].to_string();
             let vtx = digraph.vertices.get_mut(&vtx_fmri).unwrap();
-            
+
             let x_margin = 850;
             let y_margin = 10;
             let x = ((depth - 1) * 250) + x_margin;
-            
+
             let y_factor: u32 = match height {
-                1 => { 1 }
-                _ => { (max_height / vertices.len()).try_into().unwrap() }
+                1 => 1,
+                _ => (max_height / vertices.len()).try_into().unwrap(),
             };
             let y = ((height - 1) * 100 * y_factor) + y_margin;
 
-            debug!("VERTEX: fmri: {}, depth: {}, height: {}, x: {}, y: {}", vtx_fmri,
-                depth, height, x, y);
+            debug!(
+                "VERTEX: fmri: {}, depth: {}, height: {}, x: {}, y: {}",
+                vtx_fmri, depth, height, x, y
+            );
             let rect = Rectangle::new()
                 .set("x", x)
                 .set("y", y)
@@ -387,7 +392,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
                 .add(rect)
                 .add(name_label)
                 .add(inst_label);
-            
+
             for prop in &vtx.properties {
                 vtx_group = vtx_group.set(prop.name.clone(), prop.value.clone());
             }
@@ -402,7 +407,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     for depth in 1..=max_depth {
         let vertices = column_hash.get(&depth).unwrap();
         for v in vertices {
-	    let vtx_fmri: String = v.to_string();
+            let vtx_fmri: String = v.to_string();
             let vtx = digraph.vertices.get(&vtx_fmri).unwrap();
 
             if vtx.outgoing_edges.is_none() {
@@ -472,17 +477,18 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
 
     let mut htmlfile = fs::File::create(&config.html_path)?;
     htmlfile.write_fmt(format_args!(
-        "<html><title>SAS Topology</title><body bgcolor=\"EEEEEE\">\n"))?;
+        "<html><title>SAS Topology</title><body bgcolor=\"EEEEEE\">\n"
+    ))?;
     htmlfile.write_fmt(format_args!(
         "<iframe src=\"{}\" width={} height={} scrollable=\"yes\" frameborder=\"no\" />",
-        svg_path, svg_width, svg_height))?;
+        svg_path, svg_width, svg_height
+    ))?;
     htmlfile.write_fmt(format_args!("</body></html>\n"))?;
 
     Ok(())
 }
 
 pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
-    
     //
     // Read in the serialized (XML) representation of a SAS topology and
     // deserialize it into a TopoDigraphXML structure.
@@ -490,15 +496,19 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     let xml_contents = fs::read_to_string(&config.xml_path)?;
     let sasxml: TopoDigraphXML = serde_xml_rs::from_str(&xml_contents)?;
 
-    let mut digraph = SasDigraph::new(sasxml.product_id, sasxml.nodename, sasxml.os_version, sasxml.timestamp);
+    let mut digraph = SasDigraph::new(
+        sasxml.product_id,
+        sasxml.nodename,
+        sasxml.os_version,
+        sasxml.timestamp,
+    );
 
     //
     // Iterate through the TopoDigraphXML and recreate the SAS topology in the
     // form of a SasDigraph structure.
     //
     for vtxxml in sasxml.vertices.vertex {
-
-	    // Convert hex string to a u64, skipping the leading '0x'
+        // Convert hex string to a u64, skipping the leading '0x'
         let instance = u64::from_str_radix(&vtxxml.instance[2..], 16)?;
 
         let mut vtx = match vtxxml.outgoing_edges {
@@ -507,13 +517,9 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
                 for edgexml in outgoing_edges.edges {
                     edges.push(edgexml.fmri);
                 }
-                SasDigraphVertex::new(vtxxml.fmri, vtxxml.name, instance,
-                    Some(edges))
+                SasDigraphVertex::new(vtxxml.fmri, vtxxml.name, instance, Some(edges))
             }
-            None => {
-                SasDigraphVertex::new(vtxxml.fmri, vtxxml.name, instance,
-                    None)
-            }
+            None => SasDigraphVertex::new(vtxxml.fmri, vtxxml.name, instance, None),
         };
 
         //
@@ -529,8 +535,8 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
                 let mut owned1;
                 let mut owned2;
 
-                let mut props : Option<&Vec<NvlistXmlArrayElement>> = None;
-                let mut pgname : &str = "";
+                let mut props: Option<&Vec<NvlistXmlArrayElement>> = None;
+                let mut pgname: &str = "";
                 for pgnvp in pg.nvpairs {
                     match pgnvp.name.unwrap().as_ref() {
                         PG_NAME => {
@@ -544,19 +550,20 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
                             }
                         }
                         _ => {
-                            return Err(Box::new(
-                                SimpleError("Unexpected nvpair name".to_string())))
-                            }
+                            return Err(Box::new(SimpleError("Unexpected nvpair name".to_string())))
+                        }
                     }
                 }
 
                 // Sanity check against malformed XML
                 if pgname == "" {
-                    return Err(Box::new(SimpleError(
-                        format!("malformed propgroup, {} not set", PG_NAME))));
+                    return Err(Box::new(SimpleError(format!(
+                        "malformed propgroup, {} not set",
+                        PG_NAME
+                    ))));
                 } else if props.is_none() {
                     /*return Err(Box::new(SimpleError(
-                        format!("malformed propgroup, {} not set", PG_VALS))));*/
+                    format!("malformed propgroup, {} not set", PG_VALS))));*/
                     continue;
                 }
 
@@ -587,6 +594,6 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
     // specified file.
     //
     build_svg(config, &mut digraph)?;
-    
+
     Ok(())
 }
