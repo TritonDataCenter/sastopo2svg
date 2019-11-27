@@ -1,13 +1,19 @@
 'use strict';
 
+var chassis_images = [
+    'Joyent-M12G5',
+    'Joyent-S10G5'
+];
+
 //
 // Populate the Host Information table when the document is loaded.
 //
 document.addEventListener('DOMContentLoaded', function () {
     var hostprops = document.getElementById('hostprops');
+    var product_id = hostprops.getAttribute('product-id');
 
     var cell = document.getElementById('product-id');
-    cell.innerHTML = hostprops.getAttribute('product-id');
+    cell.innerHTML = product_id;
 
     cell = document.getElementById('nodename');
     cell.innerHTML = hostprops.getAttribute('nodename');
@@ -17,6 +23,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     cell = document.getElementById('timestamp');
     cell.innerHTML = hostprops.getAttribute('timestamp');
+
+    if (chassis_images.includes(product_id)) {
+        var hostinfo = document.getElementById('hostinfo');
+        var imgrow = hostinfo.insertRow(-1);
+        var imgcell = imgrow.insertCell(-1);
+        imgcell.colSpan = 2;
+        imgcell.innerHTML = '<center><img src=\'assets/' + product_id +
+            '-front.png\'></img></center>';
+
+        imgrow = hostinfo.insertRow(-1);
+        imgcell = imgrow.insertCell(-1);
+        imgcell.colSpan = 2;
+        imgcell.innerHTML = '<center><img src=\'assets/' + product_id +
+            '-rear.png\'></img></center>';
+    }
 });
 
 var link_rate_strings = [

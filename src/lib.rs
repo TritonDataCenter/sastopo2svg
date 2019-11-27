@@ -10,6 +10,8 @@ extern crate log;
 
 use log::debug;
 
+extern crate fs_extra;
+
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_xml_rs;
@@ -150,14 +152,14 @@ impl SasDigraph {
 
 #[derive(Debug)]
 pub struct Config {
-    pub html_path: String,
+    pub outdir: String,
     pub xml_path: String,
 }
 
 impl Config {
-    pub fn new(html_path: String, xml_path: String) -> Config {
+    pub fn new(outdir: String, xml_path: String) -> Config {
         Config {
-            html_path,
+            outdir,
             xml_path,
         }
     }
@@ -319,7 +321,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let foreign = ForeignObject::new()
         .set("x", 10)
         .set("y", 10)
-        .set("height", 950)
+        .set("height", 1600)
         .set("width", 900)
         .add(html_txt);
 
@@ -463,8 +465,23 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
         }
     }
 
-    let mut svg_path = config.html_path.clone();
-    svg_path.push_str(".svg");
+    fs::create_dir_all(&config.outdir)?;
+
+    let src_dir_path = std::env::current_exe()?;
+    let src_dir = match src_dir_path.parent() {
+        Some (path) => path.to_str().unwrap(),
+        None => "/"
+    };
+
+    let asset_src_dir = format!("{}/assets", src_dir);
+    debug!("Copying image assets: {} to {}", asset_src_dir, config.outdir);
+    let mut options = fs_extra::dir::CopyOptions::new();
+    options.overwrite = true;
+    fs_extra::dir::copy(&asset_src_dir, &config.outdir, &options)?;
+
+    let svg_file = format!("sastopo.{}.svg", digraph.nodename);
+    let svg_path = format!("{}/{}", config.outdir, svg_file);
+    debug!("Saving SVG to {}", svg_file);
     svg::save(&svg_path, &document)?;
 
     //
@@ -472,19 +489,21 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     // So to allow it to be more easily viewable in a browser, we embed the
     // SVG in a scrollable HTML iframe.
     //
+    let html_path = format!("{}/sastopo.{}.html", config.outdir, digraph.nodename);
     let svg_width = cmp::max(2000, max_depth * 350);
     let svg_height = cmp::max(1100, max_height * 105);
 
-    let mut htmlfile = fs::File::create(&config.html_path)?;
+    let mut htmlfile = fs::File::create(&html_path)?;
     htmlfile.write_fmt(format_args!(
         "<html><title>SAS Topology</title><body bgcolor=\"EEEEEE\">\n"
     ))?;
     htmlfile.write_fmt(format_args!(
         "<iframe src=\"{}\" width={} height={} scrollable=\"yes\" frameborder=\"no\" />",
-        svg_path, svg_width, svg_height
+        svg_file, svg_width, svg_height
     ))?;
     htmlfile.write_fmt(format_args!("</body></html>\n"))?;
 
+    println!("Done: Point your browser to file://{}", html_path);
     Ok(())
 }
 

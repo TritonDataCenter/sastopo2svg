@@ -15,10 +15,10 @@ use getopts::Options;
 use std::env;
 use std::process;
 
-extern crate sastopo_xml2svg;
+extern crate sastopo2svg;
 
 fn usage(progname: &str, opts: &Options) {
-    let msg = format!("USAGE: {} -x XML -o HTML", progname);
+    let msg = format!("USAGE: {} -x XML -d <OUTPUT_DIR>", progname);
     print!("{}", opts.usage(&msg));
 }
 
@@ -30,7 +30,7 @@ fn main() {
 
     let mut opts = Options::new();
     opts.optflag("h", "help", "print this usage message");
-    opts.optopt("o", "HTML", "pathname of HTML file to create", "SVG");
+    opts.optopt("d", "OUTPUT_DIR", "Directory to output webpage to", "OUTPUT_DIR");
     opts.optopt("x", "XML", "Output of sastopo -x", "XML");
 
     let matches = match opts.parse(&args[1..]) {
@@ -43,10 +43,10 @@ fn main() {
         process::exit(2);
     }
 
-    let html_path = match matches.opt_str("o") {
+    let outdir = match matches.opt_str("d") {
         Some(path) => path,
         None => {
-            eprintln!("-o argument is required");
+            eprintln!("-d argument is required");
             usage(&progname, &opts);
             process::exit(2);
         }
@@ -61,9 +61,9 @@ fn main() {
         }
     };
 
-    let config = sastopo_xml2svg::Config::new(html_path, xml_path);
+    let config = sastopo2svg::Config::new(outdir, xml_path);
 
-    match sastopo_xml2svg::run(&config) {
+    match sastopo2svg::run(&config) {
         Ok(_r) => {
             process::exit(0);
         }

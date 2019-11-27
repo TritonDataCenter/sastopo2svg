@@ -7,7 +7,10 @@
 #
 # Copyright 2019 Joyent, Inc.
 #
+PROG =			sastopo2svg
+PROTO_DIR =		proto/$(PROG)
 RUST_CODE =		1
+BUILD_TYPE =		release
 JS_FILES =		src/sastopo2svg.js
 RS_FILES =		src/main.rs src/lib.rs
 JSSTYLE = 		deps/jsstyle/jsstyle
@@ -28,12 +31,26 @@ TOP ?= $(error Unable to access eng.git submodule Makefiles.)
 
 include ./deps/eng/tools/mk/Makefile.node_modules.defs
 
+ifeq ($(BUILD_TYPE),release)
+	CARGO_OPTS = --release
+endif
+
 .PHONY: all check
 all: $(STAMP_NODE_MODULES)
-	$(CARGO) build
+	$(CARGO) build $(CARGO_OPTS)
+
+release: all
+	mkdir -p $(PROTO_DIR)/assets
+	cp -f target/$(BUILD_TYPE)/$(PROG) $(PROTO_DIR)/
+	cp -r images/*.png  $(PROTO_DIR)/assets/
+
+clean::
+	$(CARGO) clean
 
 #
 # Included target definitions.
 #
 include ./deps/eng/tools/mk/Makefile.node_modules.targ
 include ./deps/eng/tools/mk/Makefile.targ
+
+CLEAN_FILES =		$(PROTO_DIR)

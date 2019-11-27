@@ -11,3 +11,4 @@ Cargo.lock
 node_modules/
 make_stamps/
 package-lock.json
+proto/
