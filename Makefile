@@ -42,7 +42,7 @@ all: $(STAMP_NODE_MODULES)
 release: all
 	mkdir -p $(PROTO_DIR)/assets
 	cp -f target/$(BUILD_TYPE)/$(PROG) $(PROTO_DIR)/
-	cp -r images/*.png  $(PROTO_DIR)/assets/
+	cp -r images/*  $(PROTO_DIR)/assets/
 
 clean::
 	$(CARGO) clean

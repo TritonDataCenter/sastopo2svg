@@ -8,9 +8,12 @@ var chassis_images = [
 //
 // Populate the Host Information table when the document is loaded.
 //
+var front_image_cell;
+var rear_image_cell;
+var product_id;
 document.addEventListener('DOMContentLoaded', function () {
     var hostprops = document.getElementById('hostprops');
-    var product_id = hostprops.getAttribute('product-id');
+    product_id = hostprops.getAttribute('product-id');
 
     var cell = document.getElementById('product-id');
     cell.innerHTML = product_id;
@@ -27,16 +30,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (chassis_images.includes(product_id)) {
         var hostinfo = document.getElementById('hostinfo');
         var imgrow = hostinfo.insertRow(-1);
-        var imgcell = imgrow.insertCell(-1);
-        imgcell.colSpan = 2;
-        imgcell.innerHTML = '<center><img src=\'assets/' + product_id +
-            '-front.png\'></img></center>';
+        front_image_cell = imgrow.insertCell(-1);
+        front_image_cell.colSpan = 2;
+        let img_file = product_id + '-front.png'
+        front_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
+            img_file + '\'></img></center>';
 
         imgrow = hostinfo.insertRow(-1);
-        imgcell = imgrow.insertCell(-1);
-        imgcell.colSpan = 2;
-        imgcell.innerHTML = '<center><img src=\'assets/' + product_id +
-            '-rear.png\'></img></center>';
+        rear_image_cell = imgrow.insertCell(-1);
+        rear_image_cell.colSpan = 2;
+        img_file = product_id + '-rear.png'
+        rear_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
+            img_file + '\'></img></center>';
     }
 });
 
@@ -138,6 +143,22 @@ function showInfo(evt) { // eslint-disable-line no-unused-vars
         var valuecell = row.insertCell(-1);
         valuecell.colSpan = 4;
         valuecell.innerHTML = value;
+    }
+    let location = group.getAttribute('location');
+    if (location !== null) {
+        location = location.replace(/ /g, "-");
+        let img_file = product_id + '-' + location;
+        front_image_cell.innerHTML = '<center><img src=\'assets/' +
+            product_id + '/' + img_file + '-front.png\'></img></center>';
+        rear_image_cell.innerHTML = '<center><img src=\'assets/' +
+            product_id + '/' + img_file + '-rear.png\'></img></center>';
+    } else {
+        let img_file = product_id + '-front.png'
+        front_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
+            img_file + '\'></img></center>';
+        img_file = product_id + '-rear.png'
+        rear_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
+            img_file + '\'></img></center>';
     }
 
     if (name === 'port') {
