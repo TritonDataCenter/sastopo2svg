@@ -22,7 +22,8 @@ use topo_digraph_xml::{
 };
 
 extern crate svg;
-use svg::node::element::{ForeignObject, Group, Line, Rectangle, Script, Text};
+use svg::node::element::{
+    Filter, ForeignObject, Group, Image, Line, Rectangle, Script};
 use svg::Document;
 
 use std::cmp;
@@ -321,19 +322,25 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     let foreign = ForeignObject::new()
         .set("x", 10)
         .set("y", 10)
-        .set("height", 1600)
+        .set("height", 1800)
         .set("width", 900)
         .add(html_txt);
+
+    let filter_matrix = svg::node::Text::new(" <feColorMatrix type=\"matrix\" values=\"1 0 0 1.9 -2.2 0 1 0 0.0 0.3 0 0 1 0 0.5 0 0 0 1 0.2\" />");
+    let filter = Filter::new()
+        .set("id", "linear")
+        .add(filter_matrix);
 
     let mut document = Document::new()
         .set("overflow", "scroll")
         .set("viewbox", (0, 0, (100 * max_depth), (250 * max_height)))
         .add(on_click)
         .add(foreign)
+        .add(filter)
         .add(hostinfo);
 
-    let vtx_width = 180;
-    let vtx_height = 70;
+    let vtx_width = 120;
+    let vtx_height = 120;
 
     //
     // Generate the SVG elements for all the vertices.
@@ -353,47 +360,37 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
                 1 => 1,
                 _ => (max_height / vertices.len()).try_into().unwrap(),
             };
-            let y = ((height - 1) * 100 * y_factor) + y_margin;
+            let y = ((height - 1) * 150 * y_factor) + y_margin;
 
             debug!(
                 "VERTEX: fmri: {}, depth: {}, height: {}, x: {}, y: {}",
                 vtx_fmri, depth, height, x, y
             );
-            let rect = Rectangle::new()
+
+            let imguri = match vtx.name.as_ref() {
+                INITIATOR => "assets/icons/initiator.png",
+                PORT => "assets/icons/port.png",
+                EXPANDER => "assets/icons/expander.png",
+                TARGET => "assets/icons/target.png",
+                &_ => return Err(Box::new(SimpleError("unexpected vertex name".to_string()))),
+            };
+            let img = Image::new()
+                .set("href", imguri)
                 .set("x", x)
                 .set("y", y)
                 .set("width", vtx_width)
-                .set("height", vtx_height)
-                .set("fill", "white")
-                .set("stroke", "black")
-                .set("stroke-width", 3);
+                .set("height", vtx_height);
 
             vtx.geometry.x = x;
             vtx.geometry.y = y.try_into().unwrap();
             vtx.geometry.width = vtx_width;
             vtx.geometry.height = vtx_height;
 
-            let txt = svg::node::Text::new(vtx.name.to_string());
-            let name_label = Text::new()
-                .set("x", x + 10)
-                .set("y", y + 20)
-                .set("font-family", "Courier New, Courier, monospace")
-                .add(txt);
-
-            let txt = svg::node::Text::new(format!("{:x}", vtx.instance));
-            let inst_label = Text::new()
-                .set("x", x + 10)
-                .set("y", y + 50)
-                .set("font-family", "Courier New, Courier, monospace")
-                .add(txt);
-
             let mut vtx_group = Group::new()
                 .set("onclick", "showInfo(evt)")
                 .set("name", vtx.name.clone())
                 .set("fmri", vtx_fmri)
-                .add(rect)
-                .add(name_label)
-                .add(inst_label);
+                .add(img);
 
             for prop in &vtx.properties {
                 vtx_group = vtx_group.set(prop.name.clone(), prop.value.clone());
@@ -491,7 +488,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     //
     let html_path = format!("{}/sastopo.{}.html", config.outdir, digraph.nodename);
     let svg_width = cmp::max(2000, max_depth * 350);
-    let svg_height = cmp::max(1100, max_height * 105);
+    let svg_height = cmp::max(1100, max_height * 150);
 
     let mut htmlfile = fs::File::create(&html_path)?;
     htmlfile.write_fmt(format_args!(

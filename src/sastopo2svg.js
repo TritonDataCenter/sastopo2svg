@@ -68,17 +68,20 @@ var link_rate_strings = [
 //
 function showInfo(evt) { // eslint-disable-line no-unused-vars
     //
-    // Iterate through the DOM <rect> elements, which represent the graph
+    // Iterate through the DOM <img> elements, which represent the graph
     // vertices and set the fill color to white.
     //
-    var allrects = document.getElementsByTagName('rect');
-    for (let i = 0; i < allrects.length; i++) {
-        allrects[i].setAttribute('fill', 'white');
+    var allimgs = document.getElementsByTagName('image');
+    for (let i = 0; i < allimgs.length; i++) {
+        allimgs[i].setAttribute('filter', 'none');
     }
 
-    // Highlight the vertex that was clicked by setting the fill color
-    var rect = evt.target.parentElement.getElementsByTagName('rect');
-    rect[0].setAttribute('fill', 'cyan');
+    //
+    // Highlight the vertex that was clicked by setting the a filter on the
+    // associated image element.
+    //
+    var img = evt.target.parentElement.getElementsByTagName('image');
+    img[0].setAttribute('filter', 'url(#linear)');
 
     // Clear the Node Information table
     var nodeinfo = document.getElementById('nodeinfo');
