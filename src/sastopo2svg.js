@@ -32,16 +32,16 @@ document.addEventListener('DOMContentLoaded', function () {
         var imgrow = hostinfo.insertRow(-1);
         front_image_cell = imgrow.insertCell(-1);
         front_image_cell.colSpan = 2;
-        let img_file = product_id + '-front.png'
-        front_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
-            img_file + '\'></img></center>';
+        let img_file = product_id + '-front.png';
+        front_image_cell.innerHTML = '<center><img src=\'assets/' +
+            product_id + '/' + img_file + '\'></img></center>';
 
         imgrow = hostinfo.insertRow(-1);
         rear_image_cell = imgrow.insertCell(-1);
         rear_image_cell.colSpan = 2;
-        img_file = product_id + '-rear.png'
-        rear_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
-            img_file + '\'></img></center>';
+        img_file = product_id + '-rear.png';
+        rear_image_cell.innerHTML = '<center><img src=\'assets/' +
+            product_id + '/' + img_file + '\'></img></center>';
     }
 });
 
@@ -149,19 +149,19 @@ function showInfo(evt) { // eslint-disable-line no-unused-vars
     }
     let location = group.getAttribute('location');
     if (location !== null) {
-        location = location.replace(/ /g, "-");
+        location = location.replace(/ /g, '-');
         let img_file = product_id + '-' + location;
         front_image_cell.innerHTML = '<center><img src=\'assets/' +
             product_id + '/' + img_file + '-front.png\'></img></center>';
         rear_image_cell.innerHTML = '<center><img src=\'assets/' +
             product_id + '/' + img_file + '-rear.png\'></img></center>';
     } else {
-        let img_file = product_id + '-front.png'
-        front_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
-            img_file + '\'></img></center>';
-        img_file = product_id + '-rear.png'
-        rear_image_cell.innerHTML = '<center><img src=\'assets/' + product_id + '/' +
-            img_file + '\'></img></center>';
+        let img_file = product_id + '-front.png';
+        front_image_cell.innerHTML = '<center><img src=\'assets/' +
+            product_id + '/' + img_file + '\'></img></center>';
+        img_file = product_id + '-rear.png';
+        rear_image_cell.innerHTML = '<center><img src=\'assets/' +
+            product_id + '/' + img_file + '\'></img></center>';
     }
 
     if (name === 'port') {
