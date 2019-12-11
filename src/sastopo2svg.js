@@ -148,20 +148,22 @@ function showInfo(evt) { // eslint-disable-line no-unused-vars
         valuecell.innerHTML = value;
     }
     let location = group.getAttribute('location');
-    if (location !== null) {
-        location = location.replace(/ /g, '-');
-        let img_file = product_id + '-' + location;
-        front_image_cell.innerHTML = '<center><img src=\'assets/' +
-            product_id + '/' + img_file + '-front.png\'></img></center>';
-        rear_image_cell.innerHTML = '<center><img src=\'assets/' +
-            product_id + '/' + img_file + '-rear.png\'></img></center>';
-    } else {
-        let img_file = product_id + '-front.png';
-        front_image_cell.innerHTML = '<center><img src=\'assets/' +
-            product_id + '/' + img_file + '\'></img></center>';
-        img_file = product_id + '-rear.png';
-        rear_image_cell.innerHTML = '<center><img src=\'assets/' +
-            product_id + '/' + img_file + '\'></img></center>';
+    if (chassis_images.includes(product_id)) {
+        if (location !== null) {
+            location = location.replace(/ /g, '-');
+            let img_file = product_id + '-' + location;
+            front_image_cell.innerHTML = '<center><img src=\'assets/' +
+                product_id + '/' + img_file + '-front.png\'></img></center>';
+            rear_image_cell.innerHTML = '<center><img src=\'assets/' +
+                product_id + '/' + img_file + '-rear.png\'></img></center>';
+        } else {
+            let img_file = product_id + '-front.png';
+            front_image_cell.innerHTML = '<center><img src=\'assets/' +
+                product_id + '/' + img_file + '\'></img></center>';
+            img_file = product_id + '-rear.png';
+            rear_image_cell.innerHTML = '<center><img src=\'assets/' +
+                product_id + '/' + img_file + '\'></img></center>';
+        }
     }
 
     if (name === 'port') {
@@ -252,7 +254,7 @@ function showInfo(evt) { // eslint-disable-line no-unused-vars
             errcell.innerHTML = (+start_phy + +i);
             for (const prop of link_err_props) {
                 errcell = errrow.insertCell(-1);
-                errcell.innerHTML = phys[i][prop];
+                errcell.innerHTML = parseInt(phys[i][prop], 16);
             }
         }
     }
