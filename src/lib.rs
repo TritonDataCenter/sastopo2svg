@@ -23,7 +23,7 @@ use topo_digraph_xml::{
 
 extern crate svg;
 use svg::node::element::{
-    Filter, ForeignObject, Group, Image, Line, Rectangle, Script};
+    Filter, Group, Image, Line, Rectangle, Script};
 use svg::Document;
 
 use std::cmp;
@@ -317,15 +317,6 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
 
     let on_click = Script::new(script).set("type", "application/ecmascript");
 
-    let html_code = include_str!("sastopo2svg.html");
-    let html_txt = svg::node::Text::new(html_code);
-    let foreign = ForeignObject::new()
-        .set("x", 10)
-        .set("y", 10)
-        .set("height", 1800)
-        .set("width", 900)
-        .add(html_txt);
-
     let filter_matrix = svg::node::Text::new(" <feColorMatrix type=\"matrix\" values=\"1 0 0 1.9 -2.2 0 1 0 0.0 0.3 0 0 1 0 0.5 0 0 0 1 0.2\" />");
     let filter = Filter::new()
         .set("id", "linear")
@@ -335,7 +326,6 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
         .set("overflow", "scroll")
         .set("viewbox", (0, 0, (100 * max_depth), (250 * max_height)))
         .add(on_click)
-        .add(foreign)
         .add(filter)
         .add(hostinfo);
 
@@ -352,7 +342,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
             let vtx_fmri: String = vertices[index].to_string();
             let vtx = digraph.vertices.get_mut(&vtx_fmri).unwrap();
 
-            let x_margin = 850;
+            let x_margin = 50;
             let y_margin = 10;
             let x = ((depth - 1) * 250) + x_margin;
 
@@ -476,7 +466,7 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     options.overwrite = true;
     fs_extra::dir::copy(&asset_src_dir, &config.outdir, &options)?;
 
-    let svg_file = format!("sastopo.{}.svg", digraph.nodename);
+    let svg_file = "sastopo.svg".to_string();
     let svg_path = format!("{}/{}", config.outdir, svg_file);
     debug!("Saving SVG to {}", svg_file);
     svg::save(&svg_path, &document)?;
@@ -486,21 +476,18 @@ fn build_svg(config: &Config, digraph: &mut SasDigraph) -> Result<(), Box<dyn Er
     // So to allow it to be more easily viewable in a browser, we embed the
     // SVG in a scrollable HTML iframe.
     //
-    let html_path = format!("{}/sastopo.{}.html", config.outdir, digraph.nodename);
-    let svg_width = cmp::max(2000, max_depth * 350);
+    let html_code = include_str!("sastopo2svg.html");
+    let html_path = format!("{}/sastopo2svg.html", config.outdir);
+    let svg_width = cmp::max(1200, max_depth * 250);
     let svg_height = cmp::max(1100, max_height * 150);
 
     let mut htmlfile = fs::File::create(&html_path)?;
-    htmlfile.write_fmt(format_args!(
-        "<html><title>SAS Topology</title><body bgcolor=\"EEEEEE\">\n"
-    ))?;
+    htmlfile.write_fmt(format_args!("{}", html_code))?;
     htmlfile.write_fmt(format_args!(
         "<iframe src=\"{}\" width={} height={} scrollable=\"yes\" frameborder=\"no\" />",
         svg_file, svg_width, svg_height
     ))?;
-    htmlfile.write_fmt(format_args!("</body></html>\n"))?;
-
-    println!("Done: Point your browser to file://{}", html_path);
+    htmlfile.write_fmt(format_args!("</div></div></body></html>\n"))?;
     Ok(())
 }
 

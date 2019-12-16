@@ -1,109 +1,137 @@
+<!-- Copyright 2019 Joyent, Inc. -->
 
-<div xmlns="http://www.w3.org/1999/xhtml">
+<html><title>SAS Topology</title>
+<body bgcolor="EEEEEE">
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('page domain is: ' + document.domain);
+});
+</script>
+
 <style>
+    table {
+        table-layout:fixed;
+        border-collapse: collapse;
+        font-family: Arial, Helvetica, sans-serif;
+        width: 700px;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    thead {
+        background-color: #000000;
+        color: #FFFFFF;
+        text-align: center;
+        vertical-align: bottom;
+    }
+    
+    tbody tr:nth-child(odd) {
+        background-color: #DFDFDF;
+        border-bottom: solid 1px black border-bottom: solid 1px black;
+    }
+    
+    tbody tr:nth-child(even) {
+        background-color: #CDCDCD;
+        border-bottom: solid 1px black border-bottom: solid 1px black;
+    }
+    
+    td {
+        word-wrap:break-word;
+        border-right: none;
+        border-left: none;
+        padding: 5px;
+    }
+    #wrapper {
+        width: 100%;
+    }
 
-table {
-    table-layout:fixed;
-    border-collapse: collapse;
-    font-family: Arial, Helvetica, sans-serif;
-    width: 700px;
-}
+    #info-table {
+        position: fixed;
+        width: 800px;
+        height: calc(100% - 60px);
+        overflow-y: scroll;
+    }
 
-* {
-  box-sizing: border-box;
-}
-
-thead {
-    background-color: #000000;
-    color: #FFFFFF;
-    text-align: center;
-    vertical-align: bottom;
-}
-
-tbody tr:nth-child(odd) {
-    background-color: #DFDFDF;
-    border-bottom: solid 1px black border-bottom: solid 1px black;
-}
-
-tbody tr:nth-child(even) {
-    background-color: #CDCDCD;
-    border-bottom: solid 1px black border-bottom: solid 1px black;
-}
-
-td {
-    word-wrap:break-word;
-    border-right: none;
-    border-left: none;
-    padding: 5px;
-}
+    #sastopo-graph {
+        margin: 60px 0 0 800px;
+        padding: 0 30px;
+        overflow-y: scroll;
+    }
 </style>
-
-<table>
-    <thead>
-        <tr height="40px">
-        <th colspan="2">Host Information</th>
-        </tr>
-    </thead>
-
-    <col width="25%" />
-    <col width="75%" />
-
-    <tbody id="hostinfo">
-        <tr>
-            <td style="font-weight:bold">Server Product</td>
-            <td id="product-id"></td>
-        </tr>
-
-        <tr>
-            <td style="font-weight:bold">Nodename</td>
-            <td id="nodename"></td>
-        </tr>
-
-        <tr>
-            <td style="font-weight:bold">OS Version</td>
-            <td id="os-version"></td>
-        </tr>
-
-        <tr>
-            <td style="font-weight:bold">Snapshot Time</td>
-            <td id="timestamp"></td>
-        </tr>
-    </tbody>
-</table>
-
-<table>
-    <thead>
-        <tr height="40px">
-        <th colspan="2">Node Information</th>
-        </tr>
-    </thead>
-
-    <col width="25%" />
-    <col width="75%" />
-    <tbody id="nodeinfo">
-    </tbody>
-</table>
-
-<table hidden="true" id="ratetable">
-    <thead>
-        <tr height="40px">
-        <th colspan="3">PHY Link Transmission Rates</th>
-        </tr>
-    </thead>
-
-    <tbody id="rateinfo">
-    </tbody>
-</table>
-
-<table hidden="true" id="errtable">
-    <thead>
-        <tr height="40px">
-        <th colspan="5">PHY Link State Error Counters</th>
-        </tr>
-    </thead>
-
-    <tbody id="errinfo">
-    </tbody>
-</table>
-
-</div>
+    
+<div id="wrapper">
+    <div id="info-table">
+        <table>
+            <thead>
+                <tr height="40px">
+                <th colspan="2">Host Information</th>
+                </tr>
+            </thead>
+        
+            <col width="25%" />
+            <col width="75%" />
+        
+            <tbody id="hostinfo">
+                <tr>
+                    <td style="font-weight:bold">Server Product</td>
+                    <td id="product-id"></td>
+                </tr>
+        
+                <tr>
+                    <td style="font-weight:bold">Nodename</td>
+                    <td id="nodename"></td>
+                </tr>
+        
+                <tr>
+                    <td style="font-weight:bold">OS Version</td>
+                    <td id="os-version"></td>
+                </tr>
+        
+                <tr>
+                    <td style="font-weight:bold">Snapshot Time</td>
+                    <td id="timestamp"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <table>
+            <thead>
+                <tr height="40px">
+                <th colspan="2">Node Information</th>
+                </tr>
+            </thead>
+        
+            <col width="25%" />
+            <col width="75%" />
+            <tbody id="nodeinfo">
+            </tbody>
+        </table>
+        
+        <table hidden="true" id="ratetable">
+            <thead>
+                <tr height="40px">
+                <th colspan="3">PHY Link Transmission Rates</th>
+                </tr>
+            </thead>
+        
+            <tbody id="rateinfo">
+            </tbody>
+        </table>
+        
+        <table hidden="true" id="errtable">
+            <thead>
+                <tr height="40px">
+                <th colspan="5">PHY Link State Error Counters</th>
+                </tr>
+            </thead>
+        
+            <tbody id="errinfo">
+            </tbody>
+        </table>
+    </div>
+      
+    <div id="sastopo-graph">
+ <!-- The rest of the HTML file will be autogenerated -->

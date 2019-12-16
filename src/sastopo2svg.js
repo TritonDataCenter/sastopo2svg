@@ -12,23 +12,25 @@ var front_image_cell;
 var rear_image_cell;
 var product_id;
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('iframe domain is: ' + document.domain);
+    var parentDoc = window.parent.document;
     var hostprops = document.getElementById('hostprops');
     product_id = hostprops.getAttribute('product-id');
 
-    var cell = document.getElementById('product-id');
+    var cell = parentDoc.getElementById('product-id');
     cell.innerHTML = product_id;
 
-    cell = document.getElementById('nodename');
+    cell = parentDoc.getElementById('nodename');
     cell.innerHTML = hostprops.getAttribute('nodename');
 
-    cell = document.getElementById('os-version');
+    cell = parentDoc.getElementById('os-version');
     cell.innerHTML = hostprops.getAttribute('os-version');
 
-    cell = document.getElementById('timestamp');
+    cell = parentDoc.getElementById('timestamp');
     cell.innerHTML = hostprops.getAttribute('timestamp');
 
     if (chassis_images.includes(product_id)) {
-        var hostinfo = document.getElementById('hostinfo');
+        var hostinfo = parentDoc.getElementById('hostinfo');
         var imgrow = hostinfo.insertRow(-1);
         front_image_cell = imgrow.insertCell(-1);
         front_image_cell.colSpan = 2;
@@ -67,6 +69,8 @@ var link_rate_strings = [
 // vertex.
 //
 function showInfo(evt) { // eslint-disable-line no-unused-vars
+    var parentDoc = window.parent.document;
+
     //
     // Iterate through the DOM <img> elements, which represent the graph
     // vertices and set the fill color to white.
@@ -84,25 +88,25 @@ function showInfo(evt) { // eslint-disable-line no-unused-vars
     img[0].setAttribute('filter', 'url(#linear)');
 
     // Clear the Node Information table
-    var nodeinfo = document.getElementById('nodeinfo');
+    var nodeinfo = parentDoc.getElementById('nodeinfo');
     var numrows = nodeinfo.rows.length;
     for (let i = 0; i < numrows; i++) {
         nodeinfo.deleteRow(-1);
     }
 
     // Clear and hide the PHY link rate table
-    var ratetable = document.getElementById('ratetable');
+    var ratetable = parentDoc.getElementById('ratetable');
     ratetable.hidden = true;
-    var rateinfo = document.getElementById('rateinfo');
+    var rateinfo = parentDoc.getElementById('rateinfo');
     numrows = rateinfo.rows.length;
     for (let i = 0; i < numrows; i++) {
         rateinfo.deleteRow(-1);
     }
 
     // Clear and hide the PHY err table
-    var errtable = document.getElementById('errtable');
+    var errtable = parentDoc.getElementById('errtable');
     errtable.hidden = true;
-    var errinfo = document.getElementById('errinfo');
+    var errinfo = parentDoc.getElementById('errinfo');
     numrows = errinfo.rows.length;
     for (let i = 0; i < numrows; i++) {
         errinfo.deleteRow(-1);
