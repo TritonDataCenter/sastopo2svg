@@ -120,15 +120,15 @@ function showInfo(evt) { // eslint-disable-line no-unused-vars
     var name = group.getAttribute('name');
 
     if (name === 'initiator') {
-        props = ['fmri', 'hc-fmri', 'devfs-name', 'name', 'manufacturer',
+        props = ['fmri', 'hc-fmri', 'dev-fmri', 'devfs-path', 'name', 'manufacturer',
             'model', 'location'];
     } else if (name === 'port') {
         props = ['fmri', 'name', 'sas-port-type', 'local-sas-address',
             'attached-sas-address'];
     } else if (name === 'expander') {
-        props = ['fmri', 'name', 'devfs-name'];
+        props = ['fmri', 'name', 'devfs-path', 'manufacturer', 'model'];
     } else if (name === 'target') {
-        props = ['fmri', 'hc-fmri', 'name', 'logical-disk', 'manufacturer',
+        props = ['fmri', 'hc-fmri', 'dev-fmri', 'name', 'logical-disk', 'manufacturer',
             'model', 'serial-number', 'location'];
     }
 
