@@ -1,6 +1,6 @@
 [package]
 name = "sastopo2svg"
-version = "0.9.24"
+version = "0.9.25"
 authors = ["Rob Johnston <rob.johnston@joyent.com>"]
 license = "MIT"
 edition = "2018"

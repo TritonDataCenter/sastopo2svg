@@ -3,7 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
-// Copyright 2019 Joyent, Inc.
+// Copyright 2020 Joyent, Inc.
 //
 extern crate env_logger;
 extern crate log;
@@ -174,29 +174,31 @@ fn parse_prop(nvl: &NvlistXmlArrayElement) -> Result<SasDigraphProperty, Box<dyn
     let mut propname: Option<String> = None;
     let mut propval: Option<String> = None;
 
-    for nvpair in &nvl.nvpairs {
-        match nvpair.name.as_ref().unwrap().as_ref() {
-            PROP_NAME => {
-                propname = Some(nvpair.value.as_ref().unwrap().clone());
-            }
-            PROP_VALUE => {
-                if nvpair.nvpair_elements.is_some() {
-                    //
-                    // If nvpair_elements is something then this is an array
-                    // type in which case we iterate through the child nvpairs
-                    // and create a string with all the array values,
-                    // delimited by a comma.
-                    //
-                    let mut valarr = Vec::new();
-                    for elem in nvpair.nvpair_elements.as_ref().unwrap() {
-                        valarr.push(elem.value.as_ref().unwrap().clone());
-                    }
-                    propval = Some(valarr.join(","));
-                } else {
-                    propval = Some(nvpair.value.as_ref().unwrap().clone());
+    if nvl.nvpairs.is_some() {
+        for nvpair in nvl.nvpairs.as_ref().unwrap() {
+            match nvpair.name.as_ref().unwrap().as_ref() {
+                PROP_NAME => {
+                    propname = Some(nvpair.value.as_ref().unwrap().clone());
                 }
+                PROP_VALUE => {
+                    if nvpair.nvpair_elements.is_some() {
+                        //
+                        // If nvpair_elements is something then this is an array
+                        // type in which case we iterate through the child nvpairs
+                        // and create a string with all the array values,
+                        // delimited by a comma.
+                        //
+                        let mut valarr = Vec::new();
+                        for elem in nvpair.nvpair_elements.as_ref().unwrap() {
+                            valarr.push(elem.value.as_ref().unwrap().clone());
+                        }
+                        propval = Some(valarr.join(","));
+                    } else {
+                        propval = Some(nvpair.value.as_ref().unwrap().clone());
+                    }
+                }
+                _ => {}
             }
-            _ => {}
         }
     }
 
@@ -540,20 +542,22 @@ pub fn run(config: &Config) -> Result<(), Box<dyn Error>> {
 
                 let mut props: Option<&Vec<NvlistXmlArrayElement>> = None;
                 let mut pgname: &str = "";
-                for pgnvp in pg.nvpairs {
-                    match pgnvp.name.unwrap().as_ref() {
-                        PG_NAME => {
-                            owned1 = pgnvp.value.unwrap();
-                            pgname = owned1.as_ref();
-                        }
-                        PG_VALS => {
-                            if pgnvp.nvlist_elements.is_some() {
-                                owned2 = pgnvp.nvlist_elements.unwrap();
-                                props = Some(owned2.as_ref());
+                if pg.nvpairs.is_some() {
+                    for pgnvp in pg.nvpairs.unwrap() {
+                        match pgnvp.name.unwrap().as_ref() {
+                            PG_NAME => {
+                                owned1 = pgnvp.value.unwrap();
+                                pgname = owned1.as_ref();
                             }
-                        }
-                        _ => {
-                            return Err(Box::new(SimpleError("Unexpected nvpair name".to_string())))
+                            PG_VALS => {
+                                if pgnvp.nvlist_elements.is_some() {
+                                    owned2 = pgnvp.nvlist_elements.unwrap();
+                                    props = Some(owned2.as_ref());
+                                }
+                            }
+                            _ => {
+                                return Err(Box::new(SimpleError("Unexpected nvpair name".to_string())))
+                            }
                         }
                     }
                 }
