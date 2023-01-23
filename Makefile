@@ -6,6 +6,7 @@
 
 #
 # Copyright 2019 Joyent, Inc.
+# Copyright 2023 MNX Cloud, Inc.
 #
 PROG =			sastopo2svg
 PROTO_DIR =		proto/$(PROG)
@@ -23,7 +24,10 @@ NODE=node
 NPM_EXEC=$(shell which npm)
 NODE_EXEC=$(shell which node)
 
+RUST_TOOLCHAIN = 1.52.1
+
 include ./deps/eng/tools/mk/Makefile.defs
+include ./deps/eng/tools/mk/Makefile.rust.defs
 
 ENGBLD_REQUIRE          := $(shell git submodule update --init deps/eng)
 
@@ -36,7 +40,7 @@ ifeq ($(BUILD_TYPE),release)
 endif
 
 .PHONY: all check
-all: $(STAMP_NODE_MODULES)
+all: $(STAMP_NODE_MODULES) | $(CARGO_EXEC)
 	$(CARGO) build $(CARGO_OPTS)
 
 release: all
@@ -52,5 +56,6 @@ clean::
 #
 include ./deps/eng/tools/mk/Makefile.node_modules.targ
 include ./deps/eng/tools/mk/Makefile.targ
+include ./deps/eng/tools/mk/Makefile.rust.targ
 
 CLEAN_FILES =		$(PROTO_DIR)

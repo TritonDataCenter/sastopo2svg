@@ -4,6 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // Copyright 2019 Joyent, Inc.
+// Copyright 2023 MNX Cloud, Inc.
 //
 //
 extern crate env_logger;
@@ -14,6 +15,7 @@ use getopts::Options;
 
 use std::env;
 use std::process;
+use std::panic::panic_any;
 
 extern crate sastopo2svg;
 
@@ -35,7 +37,7 @@ fn main() {
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
-        Err(e) => panic!(e.to_string()),
+        Err(e) => panic_any(e.to_string()),
     };
 
     if matches.opt_present("h") {
